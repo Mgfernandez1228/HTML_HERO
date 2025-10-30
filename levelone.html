@@ -6,17 +6,115 @@
     <title>HTML Hero</title>
 </head>
 <body>
-    <h1>Level One</h1>
-    <p>Fix this broken code:</p>
-    <p id="broken-code-1"></p>
+    <style>
+        html, body {
+            font-family: Arial, sans-serif;
+            display: flex;
+	        align-items: center;
+	        justify-content: center;
+	        flex-direction: column;
+        }
+        #code {
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .line {
+            white-space: pre-wrap;
+            font-family: 'Courier New', Courier, monospace;
+            padding-bottom: -10px;
+        }
+        #code.broken {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border: 1px solid #f5c6cb;
+        }
+        #code.fixed {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border: 1px solid #c3e6cb;
+        }
+        #output-1 {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        #output-1.correct {
+            color: rgb(54, 160, 125);
+        }
+        #output-1.error {
+            color: rgb(116, 26, 26);
+        }
+        textarea {
+            white-space: pre-wrap;
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+
+    <h4>Fix me!</h4>
+    <p id="code" class="broken"></p>
     <form id="fix-code-1">
-        <p>Line 1: <textarea id="line-1" name="line-1" rows="1" cols="50"></textarea required><br></p>
+        <p class="line">Line 1: <textarea id="line-1" name="line-1" rows="1" cols="50"></textarea required><br></p>
         <p></p>
-        <p>Line 2: <textarea id="line-2" name="line-2" rows="1" cols="50"></textarea required><br></p>
+        <p class="line">Line 2: <textarea id="line-2" name="line-2" rows="1" cols="50"></textarea required><br></p>
+        <p></p>
+        <p class="line">Line 3: <textarea id="line-2" name="line-3" rows="1" cols="50"></textarea required><br></p>
+        <p></p>
+        <p class="line">Line 4: <textarea id="line-2" name="line-4" rows="1" cols="50"></textarea required><br></p>
     </form>
     <p id="output-1"> </p>
 
-    <script src="levelone.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const brokenLines = [
+                '<p>This is a header</p>',
+                "<h1>This is a paragraph</h1>",
+                "<style> checkSubmission() </style>",
+                "<script> h1 { color: green } <\/script>"
+            ];
+            const correctCode1 = [
+                '<h1>This is a header</h1>',
+                '<p>This is a paragraph</p>',
+                '<style> h1 { color: green } </style>',
+                '<script> checkSubmission() <\/script>'
+            ];
+
+            const code = document.getElementById('code');
+            if (code) {
+                code.innerText = brokenLines.join('\n');
+            }
+            
+            const lines = document.querySelectorAll('.line textarea');
+            lines.forEach(line => {
+                line.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        checkSubmission();
+                    }
+                });
+            });
+
+            const output = document.getElementById('output-1');
+        
+            function checkSubmission() {
+                const userCode1 = Array.from(lines).map(line => line.value.trim());
+                if (!output) 
+                    return;
+                if (JSON.stringify(userCode1) === JSON.stringify(correctCode1)) {
+                    output.className = 'correct';
+                    output.innerText = 'Code has been fixed!';
+                    code.className = 'fixed';
+                    code.innerText = userCode1.join('\n');
+                } else if (JSON.stringify(userCode1) !== JSON.stringify(correctCode1)) {
+                    output.className = 'error';
+                    output.innerText = 'Nope, code is still broken.';
+                } else {
+                    output.innerText = '';
+                }
+            }
+        });
+    </script>
 </body>
     
 </html>
