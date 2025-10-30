@@ -2,14 +2,14 @@ import React from "react"
 
 function Player({ x, y }) {
   return (
-    <div
+    <div Player_Style
       style={{
         position: "absolute",
         left: x,
         top: y,
         width: "50px",
         height: "50px",
-        backgroundColor: "red"
+        backgroundColor: "blue"
       }}
     ></div>
   );
