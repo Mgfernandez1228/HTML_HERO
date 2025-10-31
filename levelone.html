@@ -70,14 +70,14 @@
             const brokenLines = [
                 '<p>This is a header</p>',
                 "<h1>This is a paragraph</h1>",
-                "<style> checkSubmission() </style>",
+                "<style> runFunction() </style>",
                 "<script> h1 { color: green } <\/script>"
             ];
-            const correctCode1 = [
+            const correctCodes1 = [
                 '<h1>This is a header</h1>',
                 '<p>This is a paragraph</p>',
-                '<style> h1 { color: green } </style>',
-                '<script> checkSubmission() <\/script>'
+                '<script> runFunction() <\/script>',
+                '<style> h1 { color: green } </style>'
             ];
 
             const code = document.getElementById('code');
@@ -101,12 +101,14 @@
                 const userCode1 = Array.from(lines).map(line => line.value.trim());
                 if (!output) 
                     return;
+                const correctCode1 = correctCodes1;
                 if (JSON.stringify(userCode1) === JSON.stringify(correctCode1)) {
                     output.className = 'correct';
                     output.innerText = 'Code has been fixed!';
                     code.className = 'fixed';
                     code.innerText = userCode1.join('\n');
-                } else if (JSON.stringify(userCode1) !== JSON.stringify(correctCode1)) {
+                } 
+                else if (JSON.stringify(userCode1) !== JSON.stringify(correctCode1)) {
                     output.className = 'error';
                     output.innerText = 'Nope, code is still broken.';
                 } else {
