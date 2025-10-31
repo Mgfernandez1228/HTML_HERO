@@ -1,18 +1,22 @@
-import React from 'react'
+import React from 'react';
 
-const Player = ({x, y}) => {
+const Player = ({ x, y, i_color, sprite_text }) => {
   return (
     <div
       style={{
         position: "absolute",
         left: x,
         top: y,
-        width: "50px",
-        height: "50px",
-        backgroundColor: "blue"
+        fontSize: "24px",          // size of the "<hero>" text
+        fontWeight: "bold",
+        color: i_color,            // color of the text
+        userSelect: "none",        // prevent text selection
+        pointerEvents: "none",     // allow clicks/keys to pass through
       }}
-    ></div>
-  )
-}
+    >
+      {sprite_text}
+    </div>
+  );
+};
 
-export default Player
+export default Player;

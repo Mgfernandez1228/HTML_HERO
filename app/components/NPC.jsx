@@ -1,15 +1,19 @@
 import React from 'react'
 
-const NPC = ({x, y}) => {
+const NPC = ({x, y, n_color, sprite_text}) => {
   return (
     <div className="NPC" style={{ 
         position: "absolute",
         left: x,
         top: y,
-        width: "50px",
-        height: "50px",
-        backgroundColor: "red",
-     }}></div>
+        fontSize: "24px",          // size of the "<hero>" text
+        fontWeight: "bold",
+        color: n_color,            // color of the text
+        userSelect: "none",        // prevent text selection
+        pointerEvents: "none",     // allow clicks/keys to pass through
+     }}>
+      {sprite_text}
+     </div>
   )
 }
 
