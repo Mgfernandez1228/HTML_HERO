@@ -6,11 +6,11 @@ const NPC = ({x, y, n_color, sprite_text}) => {
         position: "absolute",
         left: x,
         top: y,
-        fontSize: "24px",          // size of the "<hero>" text
+        fontSize: "24px",          //size of the <hero>
         fontWeight: "bold",
         color: n_color,            // color of the text
-        userSelect: "none",        // prevent text selection
-        pointerEvents: "none",     // allow clicks/keys to pass through
+        userSelect: "none",       
+        pointerEvents: "none",     
      }}>
       {sprite_text}
      </div>

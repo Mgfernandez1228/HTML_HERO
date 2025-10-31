@@ -17,8 +17,8 @@ const checkCollision = (player, NPC) => {
 const page = () => {
   const worldRef = useRef(null);
   const [playerPos, setPlayerPos] = useState({ x: 50, y: 50, i_color: "lightgreen", sprite_text: "<hero>" });
-  const [enemyPos] = useState({ x: 600, y: 500, n_color: "darkred",sprite_text: "<HtMML>"  }); // enemy position
-  const [NPCPos] = useState({ x: 350, y: 100, n_color: "darkblue", sprite_text: "<NPC>"  }); // Npc position
+  const [enemyPos] = useState({ x: 800, y: 700, n_color: "crimson",sprite_text: "<HtMML>"  }); // enemy position
+  const [NPCPos] = useState({ x: 350, y: 100, n_color: "blue", sprite_text: "<NPC>"  }); // Npc position
 
   const [encounter, setEncounter] = useState(false);
 

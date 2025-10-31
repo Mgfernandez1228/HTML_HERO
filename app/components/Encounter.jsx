@@ -102,9 +102,8 @@ const Encounter = ({ player, enemy }) => {
 
     return (
         <div className='fixed inset-0 bg-black/30  flex items-center justify-center z-50'>
-            <div className='bg-white text-black p-8 rounded-2xl border-4 border-gray-700 shadow-2xl flex flex-col items-center justify-center'>
+            <div className='bg-gray-100 text-black p-8 rounded-2xl border-4 border-gray-700 shadow-2xl flex flex-col items-center justify-center'>
                 <h4>Fix me!</h4>
-
                 <div id='code' className={`${styles[codeState]} ${styles.code}`} style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace', marginBottom: 8 }}>
                     {displayLines.map((line, i) => (
                         <div key={i} className={`${styles.codeLine} ${((displayLines[i] === correctCode1[i]) || (displayLines[i] === correctCode2[i])) ? styles.correct : styles.wrong}`}>
