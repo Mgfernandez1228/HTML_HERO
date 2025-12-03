@@ -171,25 +171,83 @@ export default function initGame(){
 
         k.add([k.sprite("background2"), k.pos(0, -70), k.scale(8)]);
 
-        const npc = k.add([
-                k.sprite("characters", {anim: "npc-left"}),
+        let npc = k.add([
+                k.sprite("characters", {anim: "npc-down"}),
                 k.area(),
                 k.body({isStatic: true}),
                 k.anchor("center"),
                 k.scale(8),
-                k.pos(1480, 500),
+                k.pos(196, 634),
         ]);
 
         //collison logic for walls
         
+        const tree1 = k.add([
+                k.rect(16, 169),
+                k.area(),
+                k.body({isStatic: true}),
+                k.anchor("center"),
+                k.scale(8),
+                k.pos(48, 460), 
+                k.opacity(0.5)       
+        ])
 
+        const tree2 = k.add([
+                k.rect(16, 68),
+                k.area(),
+                k.body({isStatic: true}),
+                k.anchor("center"),
+                k.scale(8),
+                k.pos(468, 844), 
+                k.opacity(0.5)       
+        ])
+
+        const tree3 = k.add([
+                k.rect(16, 48),
+                k.area(),
+                k.body({isStatic: true}),
+                k.anchor("center"),
+                k.scale(8),
+                k.pos(468, 124), 
+                k.opacity(0.5)       
+        ])
+
+        const bush = k.add([
+                k.rect(48, 16),
+                k.area(),
+                k.body({isStatic: true}),
+                k.anchor("center"),
+                k.scale(8),
+                k.pos(245, -7), 
+                k.opacity(0.5)       
+        ])
+
+        const rocks_up = k.add([
+                k.rect(200, 17),
+                k.area(),
+                k.body({isStatic: true}),
+                k.anchor("center"),
+                k.scale(8),
+                k.pos(1216, 248), 
+                k.opacity(0.5)       
+        ])
+
+        const rocks_down = k.add([
+                k.rect(200, 17),
+                k.area(),
+                k.body({isStatic: true}),
+                k.anchor("center"),
+                k.scale(8),
+                k.pos(1216, 640), 
+                k.opacity(0.5)       
+        ])
 
         //wall collions end
         
         //warp collison
         const warpToThree = k.add([
-                k.pos(890, 0),
-                k.rect(128, 16), 
+                k.pos(1836, 436),
+                k.rect(16, 32), 
                 k.area(),
                 k.anchor("center"),
                 k.scale(8),
@@ -222,7 +280,7 @@ export default function initGame(){
             k.body(),
             k.anchor("center"),
             k.scale(8),
-            k.pos(k.center()),
+            k.pos(192, 984),
             "player",
             {
                 speed: 800,
@@ -281,12 +339,13 @@ export default function initGame(){
                 return;//to prevent following lines of movement
             }
 
-            //check when colliding from npx
+            //check when colliding from npc
             if(isCollidingNpc && k.isKeyPressed("space")){
 
                 if(player.direction.eq(k.vec2(0,-1))){
                     store.set(textBoxContentAtom, "Beautiful day, isn't it?");
                     npc.play("npc-down");
+                    npc.pos = k.vec2(328, 208);
                 }
 
                 if(player.direction.eq(k.vec2(0,1))){
@@ -324,12 +383,12 @@ export default function initGame(){
         k.add([k.sprite("background1"), k.pos(0, -70), k.scale(8)]);
 
         const npc = k.add([
-                k.sprite("characters", {anim: "npc-left"}),
+                k.sprite("characters", {anim: "npc-down"}),
                 k.area(),
                 k.body({isStatic: true}),
                 k.anchor("center"),
                 k.scale(8),
-                k.pos(1480, 500),
+                k.pos(578, 94),
         ]);
 
         //collison logic for walls
@@ -437,7 +496,7 @@ export default function initGame(){
         
         //warp collison
         const warpToTwo = k.add([
-                k.pos(890, 0),
+                k.pos(890, -40),
                 k.rect(128, 16), 
                 k.area(),
                 k.anchor("center"),
@@ -450,7 +509,6 @@ export default function initGame(){
             k.go("level_two");
         })
         
-
         npc.onCollide("player", () => {
 
             isCollidingNpc = true;
@@ -532,8 +590,9 @@ export default function initGame(){
             if(isCollidingNpc && k.isKeyPressed("space")){
 
                 if(player.direction.eq(k.vec2(0,-1))){
-                    store.set(textBoxContentAtom, "Beautiful day, isn't it?");
+                    store.set(textBoxContentAtom, "Get Ready! if you can't do this you will never beat the CSS wizard and King JavaScript HTML HERO");
                     npc.play("npc-down");
+                    npc.pos = k.vec2(-100, -100);
                 }
 
                 if(player.direction.eq(k.vec2(0,1))){
