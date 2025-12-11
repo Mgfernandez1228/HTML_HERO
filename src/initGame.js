@@ -63,7 +63,7 @@ export default function initGame(){
                 k.scale(8),
                 k.pos(384, 250), 
                 k.body({isStatic: true}),
-                k.opacity(0.5)      
+                k.opacity(0.0)      
         ])
         
         const rockDOWN = k.add([
@@ -73,7 +73,7 @@ export default function initGame(){
                 k.scale(8),
                 k.pos(384, 637), 
                 k.body({isStatic: true}),
-                k.opacity(0.5)      
+                k.opacity(0.0)      
         ])  
 
         const rockUP2 = k.add([
@@ -83,7 +83,7 @@ export default function initGame(){
                 k.scale(8),
                 k.pos(768, 120), 
                 k.body({isStatic: true}),
-                k.opacity(0.5)      
+                k.opacity(0.0)      
         ])
 
         const rockDOWN2 = k.add([
@@ -93,7 +93,7 @@ export default function initGame(){
                 k.scale(8),
                 k.pos(768, 762), 
                 k.body({isStatic: true}),
-                k.opacity(0.5)      
+                k.opacity(0.0)      
         ])
 
         const rockUP3 = k.add([
@@ -103,7 +103,7 @@ export default function initGame(){
                 k.scale(8),
                 k.pos(1106, -16), 
                 k.body({isStatic: true}),
-                k.opacity(0.5)      
+                k.opacity(0.0)      
         ])
 
         const rockDOWN3 = k.add([
@@ -113,7 +113,7 @@ export default function initGame(){
                 k.scale(8),
                 k.pos(1106, 890), 
                 k.body({isStatic: true}),
-                k.opacity(0.5)      
+                k.opacity(0.0)      
         ])
 
         const rockUP4 = k.add([
@@ -123,7 +123,7 @@ export default function initGame(){
                 k.scale(8),
                 k.pos(1408, 120), 
                 k.body({isStatic: true}),
-                k.opacity(0.5)      
+                k.opacity(0.0)      
         ])    
         
         const rockDOWN4 = k.add([
@@ -133,7 +133,7 @@ export default function initGame(){
                 k.scale(8),
                 k.pos(1408, 760), 
                 k.body({isStatic: true}),
-                k.opacity(0.5)      
+                k.opacity(0.0)      
         ])   
         
         const rockUP5 = k.add([
@@ -143,7 +143,7 @@ export default function initGame(){
                 k.scale(8),
                 k.pos(1472, 248), 
                 k.body({isStatic: true}),
-                k.opacity(0.5)      
+                k.opacity(0.0)      
         ]) 
 
         const rockDOWN5 = k.add([
@@ -153,7 +153,7 @@ export default function initGame(){
                 k.scale(8),
                 k.pos(1472, 633), 
                 k.body({isStatic: true}),
-                k.opacity(0.5)      
+                k.opacity(0.0)      
         ])   
 
         const rockRIGHT = k.add([
@@ -163,7 +163,7 @@ export default function initGame(){
                 k.scale(8),
                 k.pos(1600, 433), 
                 k.body({isStatic: true}),
-                k.opacity(0.5)      
+                k.opacity(0.0)      
         ])   
 
 
@@ -176,7 +176,7 @@ export default function initGame(){
                 k.anchor("center"),
                 k.scale(8),
                 k.pos(0, 460), 
-                k.opacity(0.5)      
+                k.opacity(0.0)      
         ])    
     
         warpBackTwo.onCollide("player", () => {

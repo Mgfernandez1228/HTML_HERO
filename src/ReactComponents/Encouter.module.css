@@ -1,0 +1,100 @@
+/* =======================================================
+   REVISED CODE/ENCOUNTER UI STYLES
+   - Aligned to look like the .text-box
+========================================================== */
+
+/* The main container for the code block */
+.code {
+    /* We remove fixed positioning/size to let it flow in the layout, */
+    /* but give it the textbox's visual style. */
+    width: 100%; /* Use 100% or a specific width in your React component */
+    margin-bottom: 12px;
+    font-family: "gameboy", 'Courier New', Courier, monospace; /* Use the custom font */
+    background-color: rgb(0, 0, 0); /* Black background to match .text-box */
+    border-radius: 12px;
+    overflow: hidden; /* To hide content that might spill */
+}
+
+/* Individual code lines (like the <p> inside the text box) */
+.codeLine {
+    display: block;
+    padding: 10px 12px; /* Adjusted padding for internal spacing */
+    border-radius: 4px;
+    margin-bottom: 6px;
+    font-size: 50px; /* Large font size to match .text-box > p */
+    color: var(--font-color, #ffffff); /* Default white if var(--font-color) is not set */
+    /* Reset background color to be transparent, letting .code's black background show */
+    background-color: transparent; 
+}
+
+/* -------------------------------------------------------
+   Feedback Colors (Adjusted to be more "Game-like" if needed)
+---------------------------------------------------------- */
+
+/* Correct Line Feedback */
+.correct {
+    /* Retain feedback colors, but ensure text is large */
+    background-color: #d4edda; /* Light Green */
+    color: #155724;             /* Dark Green Text */
+    font-size: 50px; 
+    border-radius: 4px;
+}
+
+/* Wrong Line Feedback */
+.wrong {
+    background: #fff1f0; /* Light Red/Pink */
+    color: #8a1f1f;      /* Dark Red Text */
+    font-size: 50px;
+    border-radius: 4px;
+}
+
+/* Broken/Error Block */
+.broken {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border: 1px solid #f5c6cb;
+    border-radius: 12px; /* Match the main container's radius */
+    font-size: 50px;
+}
+
+/* Fixed Block */
+.fixed {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 10px;
+    border: 1px solid #c3e6cb;
+    border-radius: 12px; /* Match the main container's radius */
+    font-size: 50px;
+}
+
+/* Highlighted Correct Line */
+.lineCorrect {
+    color: #b07b00;
+    font-weight: 600;
+    margin: 6px 0;
+    font-size: 50px;
+    background-color: rgba(255, 255, 0, 0.2); /* Subtle highlight */
+}
+
+/* The input text area (retaining original function but with game font) */
+.line {
+    /* The large font size here is crucial for input consistency */
+    font-family: "gameboy", 'Courier New', Courier, monospace;
+    font-size: 50px; 
+    color: var(--font-color, #ffffff); /* Match text color */
+    background-color: rgb(0, 0, 0); /* Match main container background */
+    
+    /* Keep width and box model from your original for layout integrity */
+    width: 100%;
+    white-space: pre-wrap;
+    border: 1px solid #ccc; 
+    border-radius: 8px;
+    box-sizing: border-box;
+    padding: 0.5rem 0.6rem;
+    resize: none 
+}
+
+.correct, .lineCorrect {
+    background-clip: padding-box;
+}
