@@ -20,15 +20,29 @@ createRoot(websiteRoot).render(
 
 
 export function startGame(){
+
+initGame();
+
+
+  const websiteRoot = document.getElementById("website-root");
   const ui = document.getElementById("ui");
+  const gameCanvas = document.getElementById("game");
+  const body = document.body;
+  
 
-  // Hide website
-  //websiteRoot.style.display = "none";
+  websiteRoot.style.display = "none";  // hide website
+  ui.style.display = "block";          // show game UI
+  gameCanvas.style.display = "block";
 
-  // Show game elements
-  //ui.style.display = "block";
-  //gameCanvas.style.display = "block";
 
+  // ui.style.visibility = "visible";
+  // ui.style.pointerEvents = "auto";
+
+  // gameCanvas.style.display = "block";  // show game canvas
+
+  body.style.overflow = "hidden";//hides the whole website when in the game.
+
+  
   new ResizeObserver(() => {
     document.documentElement.style.setProperty(
       "--scale",
@@ -39,6 +53,7 @@ export function startGame(){
     );
   }).observe(ui.parentElement);
 
+
   createRoot(ui).render(
     <StrictMode>
       <Provider store ={store}>
@@ -47,7 +62,11 @@ export function startGame(){
     </StrictMode>,
   );
 
-  initGame();
+ 
+
+  
+
+  
 }
 
 

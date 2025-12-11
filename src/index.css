@@ -1,7 +1,6 @@
 /* -------------------------
    Reset + global behavior
 -------------------------- */
-
 *,
 *::before,
 *::after {
@@ -18,47 +17,72 @@
     --height: 1080;
     --font-color: #e1d8d4;
 
-    /* add scale default */
+    /* default scale for UI */
     --scale: 1;
 }
 
 /* -------------------------
-   Page base (for website)
+   Page base (website)
 -------------------------- */
-
 html,
 body {
     width: 100%;
     height: 100%;
     margin: 0;
+    padding: 0;
 }
 
 body {
-    position: relative;
+    position: relative; /* allows children to position relative */
     background-color: rgb(4, 63, 66);
     font-family: sans-serif;
-    overflow: hidden; /* remove if website needs scrolling */
+    overflow: hidden; /* prevents scrollbars */
 }
 
 /* -------------------------
-   UI container (game only)
+   Website root
 -------------------------- */
+#website-root {
+    position: relative;       /* relative to allow absolute children */
+    z-index: 10;
 
+    /* optional centering for website content */
+
+}
+
+/* -------------------------
+   UI overlay (game / React)
+-------------------------- */
 #ui {
+
+    display: none;
+
     position: absolute;
     top: 50%;
     left: 50%;
     width: calc(var(--width) * 1px);
     height: calc(var(--height) * 1px);
 
-    /* centered + scaled by ResizeObserver */
-    transform: translate(-50%, -50%) scale(var(--scale, 0));
+    /* center + scale for viewport or ResizeObserver */
+    transform: translate(-50%, -50%) scale(var(--scale, 1));
     transform-origin: center;
 
     box-sizing: border-box;
-    z-index: 10;
+    z-index: 5;        /* above website content */
     user-select: none;
+    pointer-events: auto; /* ensures clickable UI */
+}
 
-    /* CHANGE HERE: UI must be clickable */
+/* -------------------------
+   Optional: full-screen Kaplay canvas
+-------------------------- */
+#game {
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;        /* behind website root and UI */
     pointer-events: auto;
 }
