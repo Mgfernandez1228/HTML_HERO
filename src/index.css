@@ -70,7 +70,7 @@ body {
     box-sizing: border-box;
     z-index: 5;        /* above website content */
     user-select: none;
-    pointer-events: none; /* ensures clickable UI */
+    pointer-events: none; /* ensures unclickable UI */
 }
 
 /* -------------------------

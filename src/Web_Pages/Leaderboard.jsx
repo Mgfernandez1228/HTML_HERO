@@ -1,10 +1,31 @@
-import React, { useState } from "react";
+import React, {useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MainButton from "../NotUIReactComponents/MainButton.jsx";
 
 export default function Leaderboard() {
+  const [players, setPlayers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const [players] = useState(Array(10).fill({ _id: "1", username: "PLAYER", score: 1000 })); // Mocking 10 players
+
+useEffect(() => {
+  const fetchLeaderboard = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/users');
+      if (!response.ok) throw new Error('Network response was not ok');
+      
+      const data = await response.json();
+
+      // No sorting needed here anymore!
+      setPlayers(data); 
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setLoading(false);
+    }
+  };
+
+  fetchLeaderboard();
+}, []);
 
   const retroFont = { fontFamily: '"gameboy", "Courier New", Courier, monospace' };
 
@@ -24,7 +45,18 @@ export default function Leaderboard() {
         
         {/* Scrollable List Area */}
         <ul className="overflow-y-auto max-h-[50vh] sm:max-h-[60vh] p-4 sm:p-6 space-y-4 custom-scrollbar">
-          {players.map((player, index) => (
+          
+
+{loading ? (
+    <p style={retroFont} className="text-center text-[#00ffff] animate-pulse">
+      LOADING DATA...
+    </p>
+  ) : players.length === 0 ? (
+    <p style={retroFont} className="text-center text-gray-500">
+      NO HEROES YET.
+    </p>
+  ) : (         
+          players.map((player, index) => (
             <li
               key={index}
               className="flex items-center justify-between border-b border-[#333] pb-2 group hover:border-[#00ffff] transition-colors"
@@ -42,7 +74,8 @@ export default function Leaderboard() {
                 {player.score.toString().padStart(6, '0')}
               </span>
             </li>
-          ))}
+          ))
+    )}
         </ul>
       </div>
 
@@ -60,3 +93,4 @@ export default function Leaderboard() {
     </div>
   );
 }
+
