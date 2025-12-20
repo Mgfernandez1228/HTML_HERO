@@ -73,6 +73,8 @@ export default function initGame(){
         }
         // small debug log to aid troubleshooting in browser console
         try{ console.log('[initGame] onEncounterResult', level, correct); }catch(e){}
+        // record the result for this level
+        try{ if(level && Object.prototype.hasOwnProperty.call(encounterResults, level)) encounterResults[level] = !!correct; }catch(e){}
         // prevent immediate input for a short time to avoid 'stuck' movement
         try{ inputBlockedUntil = Date.now() + 220; }catch(e){}
         if(!correct) {
@@ -83,15 +85,9 @@ export default function initGame(){
         if(level === 'level_one') movedNpc1 = true;
         if(level === 'level_two') movedNpc2 = true;
         if(level === 'level_three') defeatedNpc3 = true;
-        // on win: advance to the next level if currentScene matches the encounter level
-        const next = {
-            level_one: 'level_two',
-            level_two: 'level_three',
-            level_three: 'level_three'
-        };
-        // only advance if the encounter level matches the currently active scene (safety)
-        if(currentScene === level && next[level]){
-            k.go(next[level]);
+        // on win: advance to the next level only for level_one (don't auto-teleport from level_two)
+        if(level === 'level_one' && currentScene === level){
+            k.go('level_two');
         }
     }
 
@@ -127,6 +123,12 @@ export default function initGame(){
     let movedNpc1 = false;
     let movedNpc2 = false;
     let defeatedNpc3 = false;
+    // track encounter win/lose per level: null = not attempted, true/false = result
+    const encounterResults = {
+        level_one: null,
+        level_two: null,
+        level_three: null,
+    };
 
 
     k.scene("level_three", () => {
@@ -600,6 +602,9 @@ export default function initGame(){
             player_position = [1700, 440]
         }
 
+        // helper to ensure NPC moves to its new location in-place when movedNpc2 becomes true
+        let npcMovedHandled = false;
+
         const player = k.add([
             k.sprite("characters", {anim: "down-idle"}),
             k.area(),
@@ -665,34 +670,47 @@ export default function initGame(){
                 return;//to prevent following lines of movement
             }
 
+            // ensure NPC moves to new spot once the level has been won
+            try{
+                if(movedNpc2 && !npcMovedHandled){
+                    try{ npc.pos = k.vec2(328,208); }catch(e){}
+                    npcMovedHandled = true;
+                }
+            }catch(e){}
+
             //check when colliding from npc
             if(isCollidingNpc && k.isKeyPressed("space")){
+
+                // if NPC already moved (player won), show passive dialogue but do NOT re-trigger the encounter
+                if(movedNpc2){
+                    if(player.direction.eq(k.vec2(0,-1))){
+                        store.set(textBoxContentAtom, "Beautiful day, isn't it?");
+                        npc.play("npc-down");
+                    }
+                    if(player.direction.eq(k.vec2(0,1))){
+                        store.set(textBoxContentAtom, "Horrible day, isn't it?");
+                        npc.play("npc-up");
+                    }
+                    if(player.direction.eq(k.vec2(1,0))){
+                        store.set(textBoxContentAtom, "Boring day, isn't it?");
+                        npc.play("npc-left");
+                    }
+                    if(player.direction.eq(k.vec2(-1,0))){
+                        store.set(textBoxContentAtom, "Cool day, isn't it?");
+                        npc.play("npc-right");
+                    }
+                    store.set(isTextBoxVisibleAtom, true);
+                    return;
+                }
 
                 if(player.direction.eq(k.vec2(0,-1))){
                     store.set(textBoxContentAtom, "I am the CSS Wizard, You might be good enough to deal with HTML, but you are never getting past me!");
                     npc.play("npc-down");
                 }
 
-                if(player.direction.eq(k.vec2(0,1))){
-                    store.set(textBoxContentAtom, "Horrible day, isn't it?");
-                    npc.play("npc-up");
-                }
-
-                if(player.direction.eq(k.vec2(1,0))){
-                    store.set(textBoxContentAtom, "Boring day, isn't it?");
-                    npc.play("npc-left");
-                }
-
-                if(player.direction.eq(k.vec2(-1,0))){
-                    store.set(textBoxContentAtom, "Cool day, isn't it?");
-                    npc.play("npc-right");
-                }
 
                 store.set(isTextBoxVisibleAtom, true);
                 scheduleEncounter('level_two');
-
-
-
             }
 
             player.move(player.direction.scale(player.speed));

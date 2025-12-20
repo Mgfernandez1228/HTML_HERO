@@ -105,19 +105,13 @@
 .encounterTitle {
     font-family: "gameboy", 'Courier New', Courier, monospace;
     font-size: 44px;
-    /* use a dedicated variable so this title can be changed separately */
     color: var(--encounter-title-color, #ffffff);
     margin: 0 0 8px 0;
-    /* layered zero-blur shadows to fill corners and make a solid outline */
-    text-shadow:
-        -10px -10px 0 #000,
-         10px -10px 0 #000,
-        -10px  10px 0 #000,
-         10px  10px 0 #000,
-        -10px  0    0 #000,
-         10px  0    0 #000,
-         0   -10px  0 #000,
-         0    10px  0 #000;
+    background: var(--encounter-text-bg, rgba(8,8,8,0.85));
+    border: 1px solid var(--encounter-text-border, rgba(255,255,255,0.06));
+    padding: var(--encounter-text-padding, 20px);
+    border-radius: var(--encounter-text-radius, 8px);
+    margin-bottom: 3px;
 }
 
 /* Wrapper around the encounter/dialog text — customize in your theme CSS */
