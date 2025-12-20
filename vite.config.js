@@ -8,4 +8,15 @@ export default defineConfig({
     react(),
     tailwindcss()
   ],
+
+  server: { // 🌟 This block is crucial 🌟
+      proxy: {
+        '/api': {
+          target: 'http://localhost:3000', // Points to your Express API
+          changeOrigin: true,
+          secure: false,
+        },
+      },
+    },
+
 })

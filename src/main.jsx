@@ -20,8 +20,8 @@ createRoot(websiteRoot).render(
 
 
 export function startGame(){
-
-initGame();
+  console.log('[main] startGame called');
+  initGame();
 
 
   const websiteRoot = document.getElementById("website-root");

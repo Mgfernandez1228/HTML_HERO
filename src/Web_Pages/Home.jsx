@@ -1,12 +1,16 @@
+import { useNavigate } from 'react-router-dom';
+
 import { startGame } from '../main.jsx';
 import MainButton from "../NotUIReactComponents/MainButton.jsx"
 
 export default function Home(){
+
+  const navigate = useNavigate();
     
 return (
   <div className="relative flex flex-col items-center justify-center min-h-screen w-full bg-black animate-gradient text-white px-4 sm:px-8">
     <div className="relative z-10 flex flex-col items-center gap-10 sm:gap-16 lg:gap-20">
-      <h1 className="font-extrabold text-4xl sm:text-6xl md:text-7xl lg:text-9xl text-white 
+      <h1 style={{fontFamily: '"gameboy", "Courier New", Courier, monospace'}} className="font-extrabold text-4xl sm:text-6xl md:text-7xl lg:text-9xl text-white 
                       drop-shadow-[0_0_25px_#00ffff] 
                       [text-shadow:3px_5px_0px_#1a1a1a,6px_8px_15px_rgba(0,0,0,0.7)] 
                       breathe text-center">
@@ -14,7 +18,7 @@ return (
       </h1>
       <div className="flex flex-col gap-4 sm:gap-6">
         <MainButton title="Start Game" func={startGame} />
-        <MainButton title="Leaderboard" func={() => console.log("Leaderboard")} />
+        <MainButton title="Leaderboard" func={() => navigate('/Leaderboard')} />
         <MainButton title="Settings" func={() => console.log("Settings")} />
       </div>
     </div>

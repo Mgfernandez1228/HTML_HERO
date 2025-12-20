@@ -1,5 +1,5 @@
 import {useAtom, useAtomValue } from "jotai";
-import {textBoxContentAtom } from "../store.js";
+import {textBoxContentAtom, isTextBoxVisibleAtom } from "../store.js";
 import {motion} from "framer-motion";
 import "./TextBox.css";
 import { useEffect, useState } from "react";
@@ -11,7 +11,7 @@ const variants = {
 
 export default function TextBox(){
 
-    const [isVisible, setIsVisible] = useAtom(textBoxContentAtom);
+    const [isVisible, setIsVisible] = useAtom(isTextBoxVisibleAtom);
     const [isCloseRequest, setIsCloseRequest] = useState(false);
     const content = useAtomValue(textBoxContentAtom);
 
@@ -28,7 +28,6 @@ export default function TextBox(){
             if (!isVisible) return;
             if(e.code === "Space"){
                 setIsCloseRequest(true);
-
             }
         };
 

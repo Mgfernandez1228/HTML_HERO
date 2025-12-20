@@ -11,11 +11,36 @@
   </head>
   <body>
     <!-- WEBSITE ROOT -->
-    <div id="website-root"></div>
+    <div id="website-root">
+      <!-- Fallback content visible if JS fails to mount React -->
+      <div style="position:fixed;left:8px;top:8px;padding:8px 12px;background:#111;color:#0f0;border-radius:6px;z-index:9999;font-family:sans-serif;">
+        If you see this, React did not mount. Open DevTools console for errors.
+      </div>
+    </div>
+    <script>console.log('index.html loaded')</script>
 
     <!-- GAME SECTION (hidden until Play) -->
     <canvas id="game"></canvas>
     <div id="ui"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module">
+      // dynamic import so we can catch and display runtime errors in-page
+      (async () => {
+        try {
+          console.log('attempting dynamic import of /src/main.jsx')
+          await import('/src/main.jsx');
+          const fallback = document.getElementById('website-root').querySelector('div');
+          if(fallback) fallback.style.display = 'none';
+          console.log('main module imported successfully')
+        } catch (err) {
+          console.error('failed to import /src/main.jsx', err);
+          const fallback = document.getElementById('website-root').querySelector('div');
+          if(fallback){
+            fallback.innerText = 'React failed to load: ' + (err && err.message ? err.message : String(err));
+            fallback.style.background = '#330000';
+            fallback.style.color = '#ffb3b3';
+          }
+        }
+      })();
+    </script>
   </body>
 </html>

@@ -10,5 +10,6 @@ export default function initKaplay(){
         debugKey: "1",
         canvas: document.getElementById("game"),
         pixelDensity: devicePixelRatio,
+        pauseOnBlur: false,
     });
 }
