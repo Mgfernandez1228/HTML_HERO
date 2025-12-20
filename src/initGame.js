@@ -51,6 +51,8 @@ export default function initGame(){
 
     // track current scene and expose a global handler to receive encounter results
     let currentScene = null;
+    // timestamp (ms) until which player input should be ignored to avoid sticky keys
+    let inputBlockedUntil = 0;
     // monkey-patch k.go to capture current scene
     const _origGo = k.go.bind(k);
     k.go = (sceneName) => {
@@ -71,6 +73,8 @@ export default function initGame(){
         }
         // small debug log to aid troubleshooting in browser console
         try{ console.log('[initGame] onEncounterResult', level, correct); }catch(e){}
+        // prevent immediate input for a short time to avoid 'stuck' movement
+        try{ inputBlockedUntil = Date.now() + 220; }catch(e){}
         if(!correct) {
             // lose: remain on the same level (no scene change)
             return;
@@ -305,6 +309,42 @@ export default function initGame(){
 
             player.direction.x = 0;
             player.direction.y = 0;
+
+            // briefly ignore input after encounters to avoid sticky movement
+            try{
+                if(Date.now() < inputBlockedUntil){
+                    try{
+                        if(player.direction.eq(k.vec2(0, 0)) && !player.getCurAnim().name.includes("idle")){
+                            player.play(`${player.getCurAnim().name}-idle`);
+                        }
+                    }catch(e){}
+                    return;
+                }
+            }catch(e){}
+
+            // briefly ignore input after encounters to avoid sticky movement
+            try{
+                if(Date.now() < inputBlockedUntil){
+                    try{
+                        if(player.direction.eq(k.vec2(0, 0)) && !player.getCurAnim().name.includes("idle")){
+                            player.play(`${player.getCurAnim().name}-idle`);
+                        }
+                    }catch(e){}
+                    return;
+                }
+            }catch(e){}
+
+            // briefly ignore input after encounters to avoid sticky movement
+            try{
+                if(Date.now() < inputBlockedUntil){
+                    try{
+                        if(player.direction.eq(k.vec2(0, 0)) && !player.getCurAnim().name.includes("idle")){
+                            player.play(`${player.getCurAnim().name}-idle`);
+                        }
+                    }catch(e){}
+                    return;
+                }
+            }catch(e){}
 
             // if an encounter UI is active, block all player movement and input
             try{
