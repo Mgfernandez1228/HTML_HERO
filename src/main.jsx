@@ -18,7 +18,7 @@ createRoot(websiteRoot).render(
   </StrictMode>
 );
 
-
+//Game Root
 export function startGame(){
   console.log('[main] startGame called');
   initGame();
