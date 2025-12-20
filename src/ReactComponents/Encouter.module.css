@@ -104,7 +104,7 @@
 .encounterTitle {
     font-family: "gameboy", 'Courier New', Courier, monospace;
     font-size: 44px;
-    color: var(--font-color, #ffffff);
+    color: var(--font-color, #c6a13d);
     margin: 0 0 8px 0;
 }
 

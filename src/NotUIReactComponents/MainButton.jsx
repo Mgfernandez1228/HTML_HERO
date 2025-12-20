@@ -2,6 +2,7 @@ const MainButton = ({ title, func }) => {
   return (
     <button
       onClick={func ? func : undefined}
+      style={{ fontFamily: '"gameboy", "Courier New", Courier, monospace' }}
       className="
         bg-gray-800 text-white border-2 border-gray-500
         p-4 px-8 sm:px-12 md:px-16 lg:px-24
