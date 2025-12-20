@@ -3,98 +3,147 @@
    - Aligned to look like the .text-box
 ========================================================== */
 
-/* The main container for the code block */
-.code {
-    /* We remove fixed positioning/size to let it flow in the layout, */
-    /* but give it the textbox's visual style. */
-    width: 100%; /* Use 100% or a specific width in your React component */
-    margin-bottom: 12px;
-    font-family: "gameboy", 'Courier New', Courier, monospace; /* Use the custom font */
-    background-color: rgb(0, 0, 0); /* Black background to match .text-box */
-    border-radius: 12px;
-    overflow: hidden; /* To hide content that might spill */
+
+/* Choice list items for encounters */
+.choice {
+    border-radius: 8px;
+    background-color: rgba(255,255,255,0.02);
+    transition: background-color 120ms ease, transform 80ms ease;
+    display: block;
+    font-family: "gameboy", 'Courier New', Courier, monospace;
+    color: var(--font-color, #ffffff);
 }
 
-/* Individual code lines (like the <p> inside the text box) */
+/* yellow highlight when navigating or hovering: pale yellow background */
+
+/* Encounter main container */
+.code {
+    width: 100%;
+    margin-bottom: 12px;
+    font-family: "gameboy", 'Courier New', Courier, monospace;
+    background-color: rgba(0,0,0,0.92);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Individual code/text lines inside the encounter box */
 .codeLine {
     display: block;
-    padding: 10px 12px; /* Adjusted padding for internal spacing */
+    padding: 10px 12px;
     border-radius: 4px;
     margin-bottom: 6px;
-    font-size: 50px; /* Large font size to match .text-box > p */
-    color: var(--font-color, #ffffff); /* Default white if var(--font-color) is not set */
-    /* Reset background color to be transparent, letting .code's black background show */
-    background-color: transparent; 
-}
-
-/* -------------------------------------------------------
-   Feedback Colors (Adjusted to be more "Game-like" if needed)
----------------------------------------------------------- */
-
-/* Correct Line Feedback */
-.correct {
-    /* Retain feedback colors, but ensure text is large */
-    background-color: #d4edda; /* Light Green */
-    color: #155724;             /* Dark Green Text */
-    font-size: 50px; 
-    border-radius: 4px;
-}
-
-/* Wrong Line Feedback */
-.wrong {
-    background: #fff1f0; /* Light Red/Pink */
-    color: #8a1f1f;      /* Dark Red Text */
     font-size: 50px;
-    border-radius: 4px;
-}
-
-/* Broken/Error Block */
-.broken {
-    background-color: #f8d7da;
-    color: #721c24;
-    padding: 10px;
-    border: 1px solid #f5c6cb;
-    border-radius: 12px; /* Match the main container's radius */
-    font-size: 50px;
-}
-
-/* Fixed Block */
-.fixed {
-    background-color: #d4edda;
-    color: #155724;
-    padding: 10px;
-    border: 1px solid #c3e6cb;
-    border-radius: 12px; /* Match the main container's radius */
-    font-size: 50px;
-}
-
-/* Highlighted Correct Line */
-.lineCorrect {
-    color: #b07b00;
-    font-weight: 600;
-    margin: 6px 0;
-    font-size: 50px;
-    background-color: rgba(255, 255, 0, 0.2); /* Subtle highlight */
-}
-
-/* The input text area (retaining original function but with game font) */
-.line {
-    /* The large font size here is crucial for input consistency */
+    color: var(--font-color, #ffffff);
+    background-color: transparent;
     font-family: "gameboy", 'Courier New', Courier, monospace;
-    font-size: 50px; 
-    color: var(--font-color, #ffffff); /* Match text color */
-    background-color: rgb(0, 0, 0); /* Match main container background */
-    
-    /* Keep width and box model from your original for layout integrity */
-    width: 100%;
-    white-space: pre-wrap;
-    border: 1px solid #ccc; 
-    border-radius: 8px;
-    box-sizing: border-box;
-    padding: 0.5rem 0.6rem;
-    resize: none 
 }
 
-.correct, .lineCorrect {
-    background-clip: padding-box;
+/* Dark textbox variant (used for the encounter container) */
+.broken {
+    background-color: rgba(0,0,0,0.92);
+    color: var(--font-color, #ffffff);
+    padding: 10px;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    font-size: 50px;
+}
+
+/* Choice list items for encounters */
+.choice {
+    border-radius: 8px;
+    background-color: rgba(255,255,255,0.02);
+    transition: background-color 120ms ease, transform 80ms ease;
+    display: block;
+    font-family: "gameboy", 'Courier New', Courier, monospace;
+    color: var(--font-color, #ffffff);
+    padding: 6px 8px;
+}
+
+/* smaller choice text */
+.choiceText {
+    font-size: 28px;
+}
+
+/* yellow highlight when navigating or hovering: pale yellow background */
+.highlightYellow {
+    background-color: rgba(255, 223, 0, 0.18);
+}
+
+/* green for correct selection: pale green background */
+.highlightGreen {
+    background-color: rgba(40, 167, 69, 0.14);
+}
+
+/* red for wrong selection: pale red background */
+.highlightRed {
+    background-color: rgba(220, 53, 69, 0.12);
+}
+
+/* result overlay styles */
+.resultOverlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 60;
+}
+
+.resultBox {
+    /* customizable via CSS variables */
+    background: var(--result-bg, rgba(0,0,0,0.95));
+    color: var(--result-color, #ffffff);
+    padding: 28px 40px;
+    border-radius: 12px;
+    font-family: "gameboy", 'Courier New', Courier, monospace;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    --result-font-size: var(--result-font-size, 96px);
+}
+
+/* encounter title */
+.encounterTitle {
+    font-family: "gameboy", 'Courier New', Courier, monospace;
+    font-size: 44px;
+    color: var(--font-color, #ffffff);
+    margin: 0 0 8px 0;
+}
+
+/* Wrapper around the encounter/dialog text — customize in your theme CSS */
+.encounterTextBox {
+    background: var(--encounter-text-bg, rgba(8,8,8,0.85));
+    border: 1px solid var(--encounter-text-border, rgba(255,255,255,0.06));
+    padding: var(--encounter-text-padding, 12px);
+    border-radius: var(--encounter-text-radius, 8px);
+    margin-bottom: 8px;
+    font-size: var(--encounter-text-font-size, 46px);
+    color: var(--font-color, #ffffff);
+    font-family: "gameboy", 'Courier New', Courier, monospace;
+}
+/* green for correct selection: pale green background */
+.highlightGreen {
+    background-color: rgb(52, 217, 90);
+}
+
+/* red for wrong selection: pale red background */
+.highlightRed {
+    background-color: rgb(220, 53, 70);
+}
+
+/* result overlay styles */
+.resultOverlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 60;
+}
+
+.resultBox {
+    background: rgba(0,0,0,0.95);
+    color: #ffffff;
+    padding: 28px 40px;
+    border-radius: 12px;
+    font-family: "gameboy", 'Courier New', Courier, monospace;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
 }

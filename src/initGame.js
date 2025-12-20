@@ -1,9 +1,95 @@
 import initKaplay from "./kaplayCtx";
-import { isTextBoxVisibleAtom, store, textBoxContentAtom } from "./store";
+import { isTextBoxVisibleAtom, store, textBoxContentAtom, encounterAtom } from "./store";
+
+// pending encounter scheduling: when an NPC dialog opens we schedule the encounter
+let _pendingEncounterTimeout = null;
+let _pendingEncounterLevel = null;
+
+function scheduleEncounter(level){
+    // clear any previous
+    if(_pendingEncounterTimeout){
+        clearTimeout(_pendingEncounterTimeout);
+        _pendingEncounterTimeout = null;
+        _pendingEncounterLevel = null;
+    }
+
+    // if an encounter is already active, don't schedule
+    try{
+        const active = store.get(encounterAtom);
+        if(active) return;
+    }catch(e){}
+
+    _pendingEncounterLevel = level;
+    _pendingEncounterTimeout = setTimeout(() => {
+        store.set(encounterAtom, _pendingEncounterLevel);
+        _pendingEncounterTimeout = null;
+        _pendingEncounterLevel = null;
+    }, 3000);
+}
+
+function triggerPendingEncounterNow(){
+    if(_pendingEncounterTimeout && _pendingEncounterLevel){
+        clearTimeout(_pendingEncounterTimeout);
+        store.set(encounterAtom, _pendingEncounterLevel);
+        _pendingEncounterTimeout = null;
+        _pendingEncounterLevel = null;
+    }
+}
+
+// also allow an immediate trigger by pressing Space while the textbox is open
+window.addEventListener('keydown', (e) => {
+    if(!e) return;
+    const code = e.code || e.key;
+    if((code === 'Space' || code === 'Spacebar' || code === ' ') && _pendingEncounterLevel){
+        triggerPendingEncounterNow();
+    }
+});
 
 export default function initGame(){
 
     const k = initKaplay();
+
+    // track current scene and expose a global handler to receive encounter results
+    let currentScene = null;
+    // monkey-patch k.go to capture current scene
+    const _origGo = k.go.bind(k);
+    k.go = (sceneName) => {
+        currentScene = sceneName;
+        return _origGo(sceneName);
+    }
+
+    // global handler invoked by the React encounter UI when player confirms result
+    window.onEncounterResult = function(level, correct){
+        try{ store.set(encounterAtom, null); }catch(e){}
+        try{ store.set(isTextBoxVisibleAtom, false); }catch(e){}
+        try{ store.set(textBoxContentAtom, ""); }catch(e){}
+        // clear any pending scheduled encounter
+        if(_pendingEncounterTimeout){
+            clearTimeout(_pendingEncounterTimeout);
+            _pendingEncounterTimeout = null;
+            _pendingEncounterLevel = null;
+        }
+        // small debug log to aid troubleshooting in browser console
+        try{ console.log('[initGame] onEncounterResult', level, correct); }catch(e){}
+        if(!correct) {
+            // lose: remain on the same level (no scene change)
+            return;
+        }
+        // on win: mark NPCs as moved/defeated so scenes can place them accordingly
+        if(level === 'level_one') movedNpc1 = true;
+        if(level === 'level_two') movedNpc2 = true;
+        if(level === 'level_three') defeatedNpc3 = true;
+        // on win: advance to the next level if currentScene matches the encounter level
+        const next = {
+            level_one: 'level_two',
+            level_two: 'level_three',
+            level_three: 'level_three'
+        };
+        // only advance if the encounter level matches the currently active scene (safety)
+        if(currentScene === level && next[level]){
+            k.go(next[level]);
+        }
+    }
 
     //loading important sprites:
     k.loadSprite("background3", "./background3.png");
@@ -220,6 +306,40 @@ export default function initGame(){
             player.direction.x = 0;
             player.direction.y = 0;
 
+            // if an encounter UI is active, block all player movement and input
+            try{
+                const activeEncounter = store.get(encounterAtom);
+                if(activeEncounter){
+                    if(player.direction.eq(k.vec2(0, 0)) && !player.getCurAnim().name.includes("idle")){
+                        player.play(`${player.getCurAnim().name}-idle`);
+                    }
+                    return;
+                }
+            }catch(e){}
+
+            // if an encounter UI is active, block all player movement and input
+            try{
+                const activeEncounter = store.get(encounterAtom);
+                if(activeEncounter){
+                    if(player.direction.eq(k.vec2(0, 0)) && !player.getCurAnim().name.includes("idle")){
+                        player.play(`${player.getCurAnim().name}-idle`);
+                    }
+                    return;
+                }
+            }catch(e){}
+
+            // if an encounter UI is active, block all player movement and input
+            try{
+                const activeEncounter = store.get(encounterAtom);
+                if(activeEncounter){
+                    // ensure idle animation
+                    if(player.direction.eq(k.vec2(0, 0)) && !player.getCurAnim().name.includes("idle")){
+                        player.play(`${player.getCurAnim().name}-idle`);
+                    }
+                    return;
+                }
+            }catch(e){}
+
             //player input to move
             if(k.isKeyDown("left")) player.direction.x = -1; //horizontal stuff
             if(k.isKeyDown("right")) player.direction.x = 1;
@@ -268,7 +388,6 @@ export default function initGame(){
 
                 if(player.direction.eq(k.vec2(0,-1))){
                     store.set(textBoxContentAtom, "Final Boss JavaScript");
-                    defeatedNpc3 = true;
                     npc.play("npc-down");
                 }
 
@@ -280,17 +399,16 @@ export default function initGame(){
 
                 if(player.direction.eq(k.vec2(1,0))){
                     store.set(textBoxContentAtom, "Final Boss JavaScript");
-                    defeatedNpc3 = true;
                     npc.play("npc-left");
                 }
 
                 if(player.direction.eq(k.vec2(-1,0))){
                     store.set(textBoxContentAtom, "Final Boss JavaScript");
-                    defeatedNpc3 = true;
                     npc.play("npc-right");
                 }
 
                 store.set(isTextBoxVisibleAtom, true);
+                scheduleEncounter('level_three');
 
 
 
@@ -511,10 +629,8 @@ export default function initGame(){
             if(isCollidingNpc && k.isKeyPressed("space")){
 
                 if(player.direction.eq(k.vec2(0,-1))){
-                    store.set(textBoxContentAtom, "Beautiful day, isn't it?");
+                    store.set(textBoxContentAtom, "I am the CSS Wizard, You might be good enough to deal with HTML, but you are never getting past me!");
                     npc.play("npc-down");
-                    npc.pos = k.vec2(328, 208);
-                    movedNpc2 = true;
                 }
 
                 if(player.direction.eq(k.vec2(0,1))){
@@ -533,6 +649,7 @@ export default function initGame(){
                 }
 
                 store.set(isTextBoxVisibleAtom, true);
+                scheduleEncounter('level_two');
 
 
 
@@ -781,10 +898,8 @@ export default function initGame(){
             if(isCollidingNpc && k.isKeyPressed("space")){
 
                 if(player.direction.eq(k.vec2(0,-1))){
-                    store.set(textBoxContentAtom, "Get Ready! if you can't do this you will never beat the CSS wizard and King JavaScript HTML HERO");
+                    store.set(textBoxContentAtom, "Get Ready! if you can't do this you will never beat the CSS wizard and King JavaScript, HTML HERO!");
                     npc.play("npc-down");
-                    npc.pos = k.vec2(-100, -100);
-                    movedNpc1 = true;
                 }
 
                 if(player.direction.eq(k.vec2(0,1))){
@@ -803,6 +918,7 @@ export default function initGame(){
                 }
 
                 store.set(isTextBoxVisibleAtom, true);
+                scheduleEncounter('level_one');
 
 
 
@@ -817,5 +933,25 @@ export default function initGame(){
 
 
     k.go("level_one");
+
+    // Expose a small debug API for runtime inspection from the browser console.
+    try{
+        window.__GAME_DEBUG__ = {
+            get: () => ({
+                encounter: (() => { try{ return store.get(encounterAtom); }catch(e){return null} })(),
+                textBoxVisible: (() => { try{ return store.get(isTextBoxVisibleAtom); }catch(e){return null} })(),
+                textBoxContent: (() => { try{ return store.get(textBoxContentAtom); }catch(e){return null} })(),
+                movedNpc1,
+                movedNpc2,
+                defeatedNpc3,
+                pendingEncounterLevel: _pendingEncounterLevel,
+                pendingEncounterScheduled: Boolean(_pendingEncounterTimeout),
+                currentScene: currentScene,
+            }),
+            // quick helpers to mutate state from console
+            setEncounter: (v) => { try{ store.set(encounterAtom, v); }catch(e){} },
+            setTextBoxVisible: (v) => { try{ store.set(isTextBoxVisibleAtom, v); }catch(e){} },
+        };
+    }catch(e){}
 
 }

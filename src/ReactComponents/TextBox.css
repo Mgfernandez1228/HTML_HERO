@@ -7,13 +7,14 @@
     background-color: rgb(0, 0, 0);
     overflow: hidden;
     border-radius: 12px;
-    font-family: "gameboy";
+    /* use the same game font with sensible fallbacks */
+    font-family: "gameboy", 'Courier New', Courier, monospace;
 
 }
 
 .text-box > p{
     margin-top: 64px;
-    margin-bottom: 64 px;
+    margin-bottom: 64px;
     margin-left: 64px;
     margin-right: 64px;
     font-size: 50px;
