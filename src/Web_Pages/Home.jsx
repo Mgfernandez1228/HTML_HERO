@@ -1,7 +1,11 @@
+import { useNavigate } from 'react-router-dom';
+
 import { startGame } from '../main.jsx';
 import MainButton from "../NotUIReactComponents/MainButton.jsx"
 
 export default function Home(){
+
+  const navigate = useNavigate();
     
 return (
   <div className="relative flex flex-col items-center justify-center min-h-screen w-full bg-black animate-gradient text-white px-4 sm:px-8">
@@ -14,7 +18,7 @@ return (
       </h1>
       <div className="flex flex-col gap-4 sm:gap-6">
         <MainButton title="Start Game" func={startGame} />
-        <MainButton title="Leaderboard" func={() => console.log("Leaderboard")} />
+        <MainButton title="Leaderboard" func={() => navigate('/Leaderboard')} />
         <MainButton title="Settings" func={() => console.log("Settings")} />
       </div>
     </div>

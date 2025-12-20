@@ -49,6 +49,20 @@ export default function initGame(){
 
     const k = initKaplay();
 
+// 1. Give the canvas a way to be focused
+const canvas = k.canvas;
+canvas.setAttribute("tabindex", "0"); 
+
+// 2. When the user returns to the tab, grab focus
+window.addEventListener("focus", () => {
+    canvas.focus();
+});
+
+// 3. When the user clicks anywhere on the page, grab focus
+window.addEventListener("mousedown", () => {
+    canvas.focus();
+});
+
     // track current scene and expose a global handler to receive encounter results
     let currentScene = null;
     // timestamp (ms) until which player input should be ignored to avoid sticky keys
