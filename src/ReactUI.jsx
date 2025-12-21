@@ -5,6 +5,7 @@ import { LevelOneEncounter, LevelTwoEncounter, LevelThreeEncounter } from './Rea
 import GameOver from "./ReactComponents/GameOver.jsx";
 import { useCallback } from 'react';
 import Hearts from "./ReactComponents/Hearts.jsx";
+import Joystick from "./ReactComponents/Joystick.jsx";
 
 export default function ReactUI() {
     const [encounter, setEncounter] = useAtom(encounterAtom);
@@ -45,6 +46,7 @@ export default function ReactUI() {
         <div>
             <Hearts/>
             <TextBox />
+            <Joystick />
             {encounter === 'level_one' && <LevelOneEncounter onClose={closeEncounterAndRefocus} />}
             {encounter === 'level_two' && <LevelTwoEncounter onClose={closeEncounterAndRefocus} />}
             {encounter === 'level_three' && <LevelThreeEncounter onClose={closeEncounterAndRefocus} />}

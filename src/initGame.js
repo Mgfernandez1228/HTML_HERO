@@ -1,5 +1,5 @@
 import initKaplay from "./kaplayCtx";
-import { isTextBoxVisibleAtom, store, textBoxContentAtom, encounterAtom, heartsAtom} from "./store";
+import { isTextBoxVisibleAtom, store, textBoxContentAtom, encounterAtom, heartsAtom, joystickAtom} from "./store";
 
 // pending encounter scheduling: when an NPC dialog opens we schedule the encounter
 let _pendingEncounterTimeout = null;
@@ -440,47 +440,62 @@ window.addEventListener("mousedown", () => {
                 }
             }catch(e){}
 
-            //player input to move
-            if(k.isKeyDown("left")) player.direction.x = -1; //horizontal stuff
-            if(k.isKeyDown("right")) player.direction.x = 1;
-
-            if(k.isKeyDown("up")) player.direction.y = -1;// height stuff
-            if(k.isKeyDown("down")) player.direction.y = 1;
+            //player input to move - check joystick first, then keyboard
+            const joystick = store.get(joystickAtom);
+            if (joystick.x !== 0 || joystick.y !== 0) {
+                // Use joystick input (already normalized -1 to 1)
+                player.direction.x = joystick.x;
+                player.direction.y = joystick.y;
+            } else {
+                // Fall back to keyboard input
+                if(k.isKeyDown("left")) player.direction.x = -1;
+                if(k.isKeyDown("right")) player.direction.x = 1;
+                if(k.isKeyDown("up")) player.direction.y = -1;
+                if(k.isKeyDown("down")) player.direction.y = 1;
+            }
 
 
             //smooth animations to keep nice cycle
+            // For animations, we need to check dominant direction
+            const dominantX = Math.abs(player.direction.x) > Math.abs(player.direction.y);
+            const dominantY = Math.abs(player.direction.y) > Math.abs(player.direction.x);
 
-            if(player.direction.eq(k.vec2(-1, 0)) &&
+            if(dominantX && player.direction.x < -0.3 &&
             player.getCurAnim().name !== "left"){
                 player.play("left");
             }
 
-            if(player.direction.eq(k.vec2(1, 0)) &&
+            if(dominantX && player.direction.x > 0.3 &&
             player.getCurAnim().name !== "right"){
                 player.play("right");
             }
 
-            if(player.direction.eq(k.vec2(0, -1)) &&
+            if(dominantY && player.direction.y < -0.3 &&
             player.getCurAnim().name !== "up"){
                 player.play("up");
             }
 
-            if(player.direction.eq(k.vec2(0, 1)) &&
+            if(dominantY && player.direction.y > 0.3 &&
             player.getCurAnim().name !== "down"){
                 player.play("down");
             }
 
             //setting idle animations cool trick to find current anim
 
-            if(player.direction.eq(k.vec2(0, 0)) &&
+            if(player.direction.x === 0 && player.direction.y === 0 &&
             !player.getCurAnim().name.includes("idle")){
                 player.play(`${player.getCurAnim().name}-idle`);//converts current anim move to string for method
             }
 
-            //if moving diagonally
-            if(player.direction.x && player.direction.y){
-                player.move(player.direction.scale(DIAGONAL_FACTOR*player.speed));
-                return;//to prevent following lines of movement
+            //if moving
+            if(player.direction.x !== 0 || player.direction.y !== 0){
+                // Normalize direction for consistent speed
+                const len = Math.sqrt(player.direction.x * player.direction.x + player.direction.y * player.direction.y);
+                if (len > 1) {
+                    player.direction.x /= len;
+                    player.direction.y /= len;
+                }
+                player.move(k.vec2(player.direction.x, player.direction.y).scale(player.speed));
             }
 
             //check when colliding from npx
@@ -513,8 +528,6 @@ window.addEventListener("mousedown", () => {
 
 
             }
-
-            player.move(player.direction.scale(player.speed));
 
         })
 
@@ -685,47 +698,62 @@ window.addEventListener("mousedown", () => {
             player.direction.x = 0;
             player.direction.y = 0;
 
-            //player input to move
-            if(k.isKeyDown("left")) player.direction.x = -1; //horizontal stuff
-            if(k.isKeyDown("right")) player.direction.x = 1;
-
-            if(k.isKeyDown("up")) player.direction.y = -1;// height stuff
-            if(k.isKeyDown("down")) player.direction.y = 1;
+            //player input to move - check joystick first, then keyboard
+            const joystick = store.get(joystickAtom);
+            if (joystick.x !== 0 || joystick.y !== 0) {
+                // Use joystick input (already normalized -1 to 1)
+                player.direction.x = joystick.x;
+                player.direction.y = joystick.y;
+            } else {
+                // Fall back to keyboard input
+                if(k.isKeyDown("left")) player.direction.x = -1;
+                if(k.isKeyDown("right")) player.direction.x = 1;
+                if(k.isKeyDown("up")) player.direction.y = -1;
+                if(k.isKeyDown("down")) player.direction.y = 1;
+            }
 
 
             //smooth animations to keep nice cycle
+            // For animations, we need to check dominant direction
+            const dominantX = Math.abs(player.direction.x) > Math.abs(player.direction.y);
+            const dominantY = Math.abs(player.direction.y) > Math.abs(player.direction.x);
 
-            if(player.direction.eq(k.vec2(-1, 0)) &&
+            if(dominantX && player.direction.x < -0.3 &&
             player.getCurAnim().name !== "left"){
                 player.play("left");
             }
 
-            if(player.direction.eq(k.vec2(1, 0)) &&
+            if(dominantX && player.direction.x > 0.3 &&
             player.getCurAnim().name !== "right"){
                 player.play("right");
             }
 
-            if(player.direction.eq(k.vec2(0, -1)) &&
+            if(dominantY && player.direction.y < -0.3 &&
             player.getCurAnim().name !== "up"){
                 player.play("up");
             }
 
-            if(player.direction.eq(k.vec2(0, 1)) &&
+            if(dominantY && player.direction.y > 0.3 &&
             player.getCurAnim().name !== "down"){
                 player.play("down");
             }
 
             //setting idle animations cool trick to find current anim
 
-            if(player.direction.eq(k.vec2(0, 0)) &&
+            if(player.direction.x === 0 && player.direction.y === 0 &&
             !player.getCurAnim().name.includes("idle")){
                 player.play(`${player.getCurAnim().name}-idle`);//converts current anim move to string for method
             }
 
-            //if moving diagonally
-            if(player.direction.x && player.direction.y){
-                player.move(player.direction.scale(DIAGONAL_FACTOR*player.speed));
-                return;//to prevent following lines of movement
+            //if moving
+            if(player.direction.x !== 0 || player.direction.y !== 0){
+                // Normalize direction for consistent speed
+                const len = Math.sqrt(player.direction.x * player.direction.x + player.direction.y * player.direction.y);
+                if (len > 1) {
+                    player.direction.x /= len;
+                    player.direction.y /= len;
+                }
+                player.move(k.vec2(player.direction.x, player.direction.y).scale(player.speed));
             }
 
             // ensure NPC moves to new spot once the level has been won
@@ -770,8 +798,6 @@ window.addEventListener("mousedown", () => {
                 store.set(isTextBoxVisibleAtom, true);
                 scheduleEncounter('level_two');
             }
-
-            player.move(player.direction.scale(player.speed));
 
         })
 
@@ -967,47 +993,62 @@ window.addEventListener("mousedown", () => {
             player.direction.x = 0;
             player.direction.y = 0;
 
-            //player input to move
-            if(k.isKeyDown("left")) player.direction.x = -1; //horizontal stuff
-            if(k.isKeyDown("right")) player.direction.x = 1;
-
-            if(k.isKeyDown("up")) player.direction.y = -1;// height stuff
-            if(k.isKeyDown("down")) player.direction.y = 1;
+            //player input to move - check joystick first, then keyboard
+            const joystick = store.get(joystickAtom);
+            if (joystick.x !== 0 || joystick.y !== 0) {
+                // Use joystick input (already normalized -1 to 1)
+                player.direction.x = joystick.x;
+                player.direction.y = joystick.y;
+            } else {
+                // Fall back to keyboard input
+                if(k.isKeyDown("left")) player.direction.x = -1;
+                if(k.isKeyDown("right")) player.direction.x = 1;
+                if(k.isKeyDown("up")) player.direction.y = -1;
+                if(k.isKeyDown("down")) player.direction.y = 1;
+            }
 
 
             //smooth animations to keep nice cycle
+            // For animations, we need to check dominant direction
+            const dominantX = Math.abs(player.direction.x) > Math.abs(player.direction.y);
+            const dominantY = Math.abs(player.direction.y) > Math.abs(player.direction.x);
 
-            if(player.direction.eq(k.vec2(-1, 0)) &&
+            if(dominantX && player.direction.x < -0.3 &&
             player.getCurAnim().name !== "left"){
                 player.play("left");
             }
 
-            if(player.direction.eq(k.vec2(1, 0)) &&
+            if(dominantX && player.direction.x > 0.3 &&
             player.getCurAnim().name !== "right"){
                 player.play("right");
             }
 
-            if(player.direction.eq(k.vec2(0, -1)) &&
+            if(dominantY && player.direction.y < -0.3 &&
             player.getCurAnim().name !== "up"){
                 player.play("up");
             }
 
-            if(player.direction.eq(k.vec2(0, 1)) &&
+            if(dominantY && player.direction.y > 0.3 &&
             player.getCurAnim().name !== "down"){
                 player.play("down");
             }
 
             //setting idle animations cool trick to find current anim
 
-            if(player.direction.eq(k.vec2(0, 0)) &&
+            if(player.direction.x === 0 && player.direction.y === 0 &&
             !player.getCurAnim().name.includes("idle")){
                 player.play(`${player.getCurAnim().name}-idle`);//converts current anim move to string for method
             }
 
-            //if moving diagonally
-            if(player.direction.x && player.direction.y){
-                player.move(player.direction.scale(DIAGONAL_FACTOR*player.speed));
-                return;//to prevent following lines of movement
+            //if moving
+            if(player.direction.x !== 0 || player.direction.y !== 0){
+                // Normalize direction for consistent speed
+                const len = Math.sqrt(player.direction.x * player.direction.x + player.direction.y * player.direction.y);
+                if (len > 1) {
+                    player.direction.x /= len;
+                    player.direction.y /= len;
+                }
+                player.move(k.vec2(player.direction.x, player.direction.y).scale(player.speed));
             }
 
             //check when colliding from npx
@@ -1039,8 +1080,6 @@ window.addEventListener("mousedown", () => {
 
 
             }
-
-            player.move(player.direction.scale(player.speed));
 
         })
 
