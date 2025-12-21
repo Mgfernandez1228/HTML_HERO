@@ -35,6 +35,9 @@ function triggerPendingEncounterNow(){
         try{ store.set(isTextBoxVisibleAtom, false); }catch(e){}
         try{ store.set(textBoxContentAtom, ""); }catch(e){}
         try{ store.set(encounterAtom, _pendingEncounterLevel); }catch(e){}
+        // mark transitioning to debounce duplicate key presses
+        try{ window.__TRANSITIONING = true; }catch(e){}
+        setTimeout(() => { try{ window.__TRANSITIONING = false; }catch(e){} }, 220);
         // clear any timeout just in case
         if(_pendingEncounterTimeout){
             clearTimeout(_pendingEncounterTimeout);
@@ -50,6 +53,9 @@ window.addEventListener('keydown', (e) => {
     const code = e.code || e.key;
     // Only allow Space to trigger the pending encounter while the text box is visible
     if((code === 'Space' || code === 'Spacebar' || code === ' ') && _pendingEncounterLevel){
+        // If an auto-next transition is in progress, ignore manual key presses to avoid duplicates
+        if(window.__AUTO_NEXT_ENCOUNTER) return;
+        if(window.__TRANSITIONING) return;
         try{
             // Allow triggering pending encounter as long as no encounter UI is currently active.
             const activeEncounter = store.get(encounterAtom);
@@ -63,6 +69,67 @@ window.addEventListener('keydown', (e) => {
             triggerPendingEncounterNow();
         }
     }
+});
+
+// Global handler: if player presses Space while near the current NPC, open dialogue and schedule encounter
+window.addEventListener('keydown', (e) => {
+    if(!e) return;
+    const code = e.code || e.key;
+    const isSpace = code === 'Space' || code === 'Spacebar' || code === ' ';
+    if(!isSpace) return;
+
+    try{
+        const activeEncounter = store.get(encounterAtom);
+        const textVisible = store.get(isTextBoxVisibleAtom);
+        if(activeEncounter) return;
+
+        const player = window.__currentPlayer;
+        const npc = window.__currentNpc;
+        const sceneName = window.__currentScene;
+        if(player && npc && playerNearNpc(player, npc)){
+            // infer facing from direction or current animation so NPC can play correct facing anim
+            let dx = 0, dy = 0;
+            try{
+                const dir = player.direction;
+                if(dir && typeof dir.x === 'number' && typeof dir.y === 'number' && (dir.x !== 0 || dir.y !== 0)){
+                    dx = dir.x; dy = dir.y;
+                } else {
+                    const anim = (player.getCurAnim && player.getCurAnim().name) ? player.getCurAnim().name : '';
+                    if(anim.includes('left')) { dx = -1; dy = 0; }
+                    else if(anim.includes('right')) { dx = 1; dy = 0; }
+                    else if(anim.includes('up')) { dx = 0; dy = -1; }
+                    else if(anim.includes('down')) { dx = 0; dy = 1; }
+                }
+            }catch(e){}
+
+            const playFacing = (x,y) => {
+                try{
+                    if(x === -1) npc.play('npc-right');
+                    else if(x === 1) npc.play('npc-left');
+                    else if(y === -1) npc.play('npc-down');
+                    else if(y === 1) npc.play('npc-up');
+                }catch(e){}
+            }
+
+            // set a simple dialogue depending on scene and schedule the encounter
+            if(sceneName === 'level_two'){
+                store.set(textBoxContentAtom, "I am the CSS Wizard, You might be good enough to deal with HTML, but you are never getting past me!");
+                playFacing(dx, dy);
+                store.set(isTextBoxVisibleAtom, true);
+                scheduleEncounter('level_two');
+            } else if(sceneName === 'level_three'){
+                store.set(textBoxContentAtom, "Final Boss JavaScript");
+                playFacing(dx, dy);
+                store.set(isTextBoxVisibleAtom, true);
+                scheduleEncounter('level_three');
+            } else if(sceneName === 'level_one'){
+                store.set(textBoxContentAtom, "Get Ready! if you can't do this you will never beat the CSS wizard and King JavaScript, HTML HERO!");
+                playFacing(dx, dy);
+                store.set(isTextBoxVisibleAtom, true);
+                scheduleEncounter('level_one');
+            }
+        }
+    }catch(e){}
 });
 
 export default function initGame(){
@@ -130,6 +197,7 @@ window.addEventListener("mousedown", () => {
     const _origGo = k.go.bind(k);
     k.go = (sceneName) => {
         currentScene = sceneName;
+        try{ window.__currentScene = sceneName; }catch(e){}
         return _origGo(sceneName);
     }
 
@@ -187,8 +255,18 @@ window.addEventListener("mousedown", () => {
                     // first encounter won: show NPC dialog and queue second encounter
                     try{ store.set(textBoxContentAtom, 'You bested me once... but not yet! Prepare yourself!'); }catch(e){}
                     try{ store.set(isTextBoxVisibleAtom, true); }catch(err){}
-                    // set pending encounter to next step; player must press Space to trigger
+                    // set pending encounter to next step; allow immediate auto-transition
                     _pendingEncounterLevel = { level: 'level_two', step: 1 };
+                    // auto-trigger next encounter shortly after the current dialog closes
+                    try{ window.__AUTO_NEXT_ENCOUNTER = true; }catch(e){}
+                    setTimeout(() => {
+                        try{
+                            if(window.__AUTO_NEXT_ENCOUNTER){
+                                window.__AUTO_NEXT_ENCOUNTER = false;
+                                triggerPendingEncounterNow();
+                            }
+                        }catch(e){}
+                    }, 160);
                     return;
                 }
                 if(step === 1){
@@ -204,12 +282,30 @@ window.addEventListener("mousedown", () => {
                     try{ store.set(textBoxContentAtom, 'Impressive... but you will need more than that.'); }catch(e){}
                     try{ store.set(isTextBoxVisibleAtom, true); }catch(err){}
                     _pendingEncounterLevel = { level: 'level_three', step: 1 };
+                    try{ window.__AUTO_NEXT_ENCOUNTER = true; }catch(e){}
+                    setTimeout(() => {
+                        try{
+                            if(window.__AUTO_NEXT_ENCOUNTER){
+                                window.__AUTO_NEXT_ENCOUNTER = false;
+                                triggerPendingEncounterNow();
+                            }
+                        }catch(e){}
+                    }, 160);
                     return;
                 }
                 if(step === 1){
                     try{ store.set(textBoxContentAtom, 'You are persistent. Final test!'); }catch(e){}
                     try{ store.set(isTextBoxVisibleAtom, true); }catch(err){}
                     _pendingEncounterLevel = { level: 'level_three', step: 2 };
+                    try{ window.__AUTO_NEXT_ENCOUNTER = true; }catch(e){}
+                    setTimeout(() => {
+                        try{
+                            if(window.__AUTO_NEXT_ENCOUNTER){
+                                window.__AUTO_NEXT_ENCOUNTER = false;
+                                triggerPendingEncounterNow();
+                            }
+                        }catch(e){}
+                    }, 160);
                     return;
                 }
                 if(step === 2){
@@ -223,6 +319,25 @@ window.addEventListener("mousedown", () => {
             try{ if(level === 'level_two') movedNpc2 = true; }catch(e){}
             try{ if(level === 'level_three') defeatedNpc3 = true; }catch(e){}
         }
+    }
+
+    // Helper: determine player's facing direction.
+    // If the player is stationary (direction == 0,0), fall back to the current animation name
+    // to infer facing so NPC dialogue shows the correct text when standing still.
+    function getPlayerFacing(player){
+        try{
+            const zero = k.vec2(0,0);
+            const dir = player && player.direction ? player.direction : null;
+            if(dir && typeof dir.eq === 'function' && !dir.eq(zero)){
+                return dir;
+            }
+            const anim = (player && player.getCurAnim && player.getCurAnim().name) ? player.getCurAnim().name : '';
+            if(anim.includes('left')) return k.vec2(-1,0);
+            if(anim.includes('right')) return k.vec2(1,0);
+            if(anim.includes('up')) return k.vec2(0,-1);
+            if(anim.includes('down')) return k.vec2(0,1);
+        }catch(e){}
+        return k.vec2(0,0);
     }
 
     //loading important sprites:
@@ -439,6 +554,9 @@ window.addEventListener("mousedown", () => {
             },//tag for collisons, string to array of components
 
         ]);
+        try{ window.__currentPlayer = player; window.__currentNpc = npc; }catch(e){}
+        try{ window.__currentPlayer = player; window.__currentNpc = npc; }catch(e){}
+        try{ window.__currentPlayer = player; window.__currentNpc = npc; }catch(e){}
 
         //global update loop
         player.onUpdate(() => {
@@ -581,8 +699,8 @@ window.addEventListener("mousedown", () => {
                 return;//to prevent following lines of movement
             }
 
-            //check when colliding from npx
-            if(isCollidingNpc && k.isKeyPressed("space")){
+            //check when colliding from npx or adjacent and pressing space
+            if((isCollidingNpc || playerNearNpc(player, npc)) && k.isKeyPressed("space")){
                 // if an encounter UI is active, ignore this input to avoid overlapping dialogue
                 try{
                     const activeEncounter = store.get(encounterAtom);
@@ -610,23 +728,24 @@ window.addEventListener("mousedown", () => {
                     store.set(isTextBoxVisibleAtom, true);
                     return;
                 }
-                if(player.direction.eq(k.vec2(0,-1))){
+                const facing = getPlayerFacing(player);
+                if(facing.eq(k.vec2(0,-1))){
                     store.set(textBoxContentAtom, "Final Boss JavaScript");
                     npc.play("npc-down");
                 }
 
-                if(player.direction.eq(k.vec2(0,1))){
+                if(facing.eq(k.vec2(0,1))){
                     store.set(textBoxContentAtom, "Final Boss JavaScript");
                     defeatedNpc3 = true;
                     npc.play("npc-up");
                 }
 
-                if(player.direction.eq(k.vec2(1,0))){
+                if(facing.eq(k.vec2(1,0))){
                     store.set(textBoxContentAtom, "Final Boss JavaScript");
                     npc.play("npc-left");
                 }
 
-                if(player.direction.eq(k.vec2(-1,0))){
+                if(facing.eq(k.vec2(-1,0))){
                     store.set(textBoxContentAtom, "Final Boss JavaScript");
                     npc.play("npc-right");
                 }
@@ -870,8 +989,8 @@ window.addEventListener("mousedown", () => {
                 }
             }catch(e){}
 
-            //check when colliding from npx
-            if(isCollidingNpc && k.isKeyPressed("space")){
+            //check when colliding from npx or adjacent and pressing space
+            if((isCollidingNpc || playerNearNpc(player, npc)) && k.isKeyPressed("space")){
                 // if an encounter UI is active, ignore this input to avoid overlapping dialogue
                 try{
                     const activeEncounter = store.get(encounterAtom);
@@ -880,19 +999,20 @@ window.addEventListener("mousedown", () => {
 
                 // if NPC already moved (player won), show passive dialogue but do NOT re-trigger the encounter
                 if(movedNpc2){
-                    if(player.direction.eq(k.vec2(0,-1))){
+                    const facing = getPlayerFacing(player);
+                    if(facing.eq(k.vec2(0,-1))){
                         store.set(textBoxContentAtom, "Beautiful day, isn't it?");
                         npc.play("npc-down");
                     }
-                    if(player.direction.eq(k.vec2(0,1))){
+                    if(facing.eq(k.vec2(0,1))){
                         store.set(textBoxContentAtom, "Horrible day, isn't it?");
                         npc.play("npc-up");
                     }
-                    if(player.direction.eq(k.vec2(1,0))){
+                    if(facing.eq(k.vec2(1,0))){
                         store.set(textBoxContentAtom, "Boring day, isn't it?");
                         npc.play("npc-left");
                     }
-                    if(player.direction.eq(k.vec2(-1,0))){
+                    if(facing.eq(k.vec2(-1,0))){
                         store.set(textBoxContentAtom, "Cool day, isn't it?");
                         npc.play("npc-right");
                     }
@@ -906,7 +1026,8 @@ window.addEventListener("mousedown", () => {
                     return;
                 }
 
-                if(player.direction.eq(k.vec2(0,-1))){
+                const facing = getPlayerFacing(player);
+                if(facing.eq(k.vec2(0,-1))){
                     store.set(textBoxContentAtom, "I am the CSS Wizard, You might be good enough to deal with HTML, but you are never getting past me!");
                     npc.play("npc-down");
                 }
@@ -1155,38 +1276,38 @@ window.addEventListener("mousedown", () => {
                 return;//to prevent following lines of movement
             }
 
-            //check when colliding from npx
-            if(isCollidingNpc && k.isKeyPressed("space")){
+            //check when colliding from npx or adjacent and pressing space
+            if((isCollidingNpc || playerNearNpc(player, npc)) && k.isKeyPressed("space")){
                 // if an encounter UI is active, ignore this input to avoid overlapping dialogue
                 try{
                     const activeEncounter = store.get(encounterAtom);
                     if(activeEncounter) return;
                 }catch(e){}
 
-                if(player.direction.eq(k.vec2(0,-1))){
+                const facing = getPlayerFacing(player);
+
+                if(facing.eq(k.vec2(0,-1))){
                     store.set(textBoxContentAtom, "Get Ready! if you can't do this you will never beat the CSS wizard and King JavaScript, HTML HERO!");
                     npc.play("npc-down");
                 }
 
-                if(player.direction.eq(k.vec2(0,1))){
+                if(facing.eq(k.vec2(0,1))){
                     store.set(textBoxContentAtom, "Horrible day, isn't it?");
                     npc.play("npc-up");
                 }
 
-                if(player.direction.eq(k.vec2(1,0))){
+                if(facing.eq(k.vec2(1,0))){
                     store.set(textBoxContentAtom, "Boring day, isn't it?");
                     npc.play("npc-left");
                 }
 
-                if(player.direction.eq(k.vec2(-1,0))){
+                if(facing.eq(k.vec2(-1,0))){
                     store.set(textBoxContentAtom, "Cool day, isn't it?");
                     npc.play("npc-right");
                 }
 
                 store.set(isTextBoxVisibleAtom, true);
                 scheduleEncounter('level_one');
-
-
 
             }
 
@@ -1221,3 +1342,47 @@ window.addEventListener("mousedown", () => {
     }catch(e){}
 
 }
+
+    // Helper: returns true when the player is adjacent to the npc (within pixel threshold)
+    // default increased to 140 so interaction range is generous but not too large
+    function playerNearNpc(playerObj, npcObj, maxDistance = 140){
+        try{
+            const px = playerObj.pos && (playerObj.pos.x ?? playerObj.pos[0]);
+            const py = playerObj.pos && (playerObj.pos.y ?? playerObj.pos[1]);
+            const nx = npcObj.pos && (npcObj.pos.x ?? npcObj.pos[0]);
+            const ny = npcObj.pos && (npcObj.pos.y ?? npcObj.pos[1]);
+            if(typeof px !== 'number' || typeof py !== 'number' || typeof nx !== 'number' || typeof ny !== 'number') return false;
+            const dx = px - nx;
+            const dy = py - ny;
+            return Math.hypot(dx, dy) <= maxDistance;
+        }catch(e){
+            return false;
+        }
+    }
+
+    // Create a floating DOM hint for interacting with NPCs
+    function ensureNpcHint() {
+        let hint = document.getElementById('npc-hint');
+        if (!hint) {
+            hint = document.createElement('div');
+            hint.id = 'npc-hint';
+            hint.textContent = 'Press Space to interact';
+            Object.assign(hint.style, {
+                position: 'fixed',
+                bottom: '120px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                padding: '8px 12px',
+                background: 'rgba(0,0,0,0.7)',
+                color: 'white',
+                fontFamily: '"gameboy", monospace',
+                fontSize: '14px',
+                borderRadius: '6px',
+                pointerEvents: 'none',
+                display: 'none',
+                zIndex: 99999,
+            });
+            document.body.appendChild(hint);
+        }
+        return hint;
+    }
