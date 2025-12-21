@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import styles from './Encouter.module.css'
+import Hearts from './Hearts'
 
 // Reusable dialog component that matches the existing textbox/font style.
 export function EncounterDialog({ title, text, choices = [], onClose, titleFontSize, level }){

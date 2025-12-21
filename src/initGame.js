@@ -1,5 +1,5 @@
 import initKaplay from "./kaplayCtx";
-import { isTextBoxVisibleAtom, store, textBoxContentAtom, encounterAtom } from "./store";
+import { isTextBoxVisibleAtom, store, textBoxContentAtom, encounterAtom, heartsAtom} from "./store";
 
 // pending encounter scheduling: when an NPC dialog opens we schedule the encounter
 let _pendingEncounterTimeout = null;
@@ -130,8 +130,13 @@ window.addEventListener("mousedown", () => {
         try{ if(level && Object.prototype.hasOwnProperty.call(encounterResults, level)) encounterResults[level] = !!correct; }catch(e){}
         // prevent immediate input for a short time to avoid 'stuck' movement
         try{ inputBlockedUntil = Date.now() + 220; }catch(e){}
+        // if incorrect properly show by loss of hearts
         if(!correct) {
-            // lose: remain on the same level (no scene change)
+            try {
+                const currentHearts = store.get(heartsAtom);
+                store.set(heartsAtom, Math.max(0, currentHearts - 1));
+            } catch (e) {}
+
             return;
         }
         // on win: mark NPCs as moved/defeated so scenes can place them accordingly
