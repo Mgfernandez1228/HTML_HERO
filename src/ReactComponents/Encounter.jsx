@@ -3,19 +3,25 @@ import styles from './Encouter.module.css'
 import Hearts from './Hearts'
 
 // Reusable dialog component that matches the existing textbox/font style.
-export function EncounterDialog({ title, text, choices = [], onClose, titleFontSize, level }){
+export function EncounterDialog({ title, text, choices = [], onClose, titleFontSize, encounterMeta }){
     const [selected, setSelected] = useState(0)
     const [result, setResult] = useState(null) // null | {index, correct}
     const containerRef = useRef(null)
 
     useEffect(() => {
         function handleKey(e){
+            // normalize common key names/codes for Space and Enter across browsers
+            const k = e.key;
+            const code = e.code;
+            const isSpace = code === 'Space' || k === ' ' || k === 'Spacebar' || k === 'Space';
+            const isEnter = code === 'Enter' || k === 'Enter';
+
             // when result is shown, Space/Enter confirms and closes
             if(result){
-                if(e.key === ' ' || e.key === 'Spacebar' || e.key === 'Enter'){
+                if(isSpace || isEnter){
                     e.preventDefault();
                     if(window && typeof window.onEncounterResult === 'function'){
-                        try{ window.onEncounterResult(level, result.correct); }catch(err){}
+                        try{ window.onEncounterResult(encounterMeta, result.correct); }catch(err){}
                     }
                     onClose && onClose();
                 }
@@ -30,20 +36,20 @@ export function EncounterDialog({ title, text, choices = [], onClose, titleFontS
                 e.preventDefault()
                 setSelected(s => (s + 1) % choices.length)
             }
-            if(e.key === ' ' || e.key === 'Spacebar' || e.key === 'Enter'){
+            if(isSpace || isEnter){
                 e.preventDefault()
                 const correct = Boolean(choices[selected] && choices[selected].isCorrect)
-                console.log('[Encounter] keyboard select', level, selected, correct);
+                console.log('[Encounter] keyboard select', encounterMeta, selected, correct);
                 setResult({ index: selected, correct })
             }
-            if(e.key === 'Escape'){
+                if(e.key === 'Escape'){
                 e.preventDefault()
                 onClose && onClose()
             }
         }
         window.addEventListener('keydown', handleKey)
         return () => window.removeEventListener('keydown', handleKey)
-    }, [choices, selected, result, onClose, level])
+    }, [choices, selected, result, onClose, encounterMeta])
 
     useEffect(() => {
         // focus container for accessibility
@@ -93,7 +99,7 @@ export function EncounterDialog({ title, text, choices = [], onClose, titleFontS
                             <div className={styles.resultBox} onClick={() => {
                                 console.log('[Encounter] confirm result click', level, result.correct);
                                 if(window && typeof window.onEncounterResult === 'function'){
-                                    try{ window.onEncounterResult(level, result.correct); }catch(err){}
+                                    try{ window.onEncounterResult(encounterMeta, result.correct); }catch(err){}
                                 }
                                 onClose && onClose();
                             }}>

@@ -19,19 +19,27 @@ function scheduleEncounter(level){
         if(active) return;
     }catch(e){}
 
+    // Instead of auto-triggering after a timeout, store the pending level
+    // and wait for the player to press Space to progress into the encounter.
     _pendingEncounterLevel = level;
-    _pendingEncounterTimeout = setTimeout(() => {
-        store.set(encounterAtom, _pendingEncounterLevel);
+    // ensure no existing timeout remains
+    if(_pendingEncounterTimeout){
+        clearTimeout(_pendingEncounterTimeout);
         _pendingEncounterTimeout = null;
-        _pendingEncounterLevel = null;
-    }, 3000);
+    }
 }
 
 function triggerPendingEncounterNow(){
-    if(_pendingEncounterTimeout && _pendingEncounterLevel){
-        clearTimeout(_pendingEncounterTimeout);
-        store.set(encounterAtom, _pendingEncounterLevel);
-        _pendingEncounterTimeout = null;
+    if(_pendingEncounterLevel){
+        // close textbox and open encounter UI immediately
+        try{ store.set(isTextBoxVisibleAtom, false); }catch(e){}
+        try{ store.set(textBoxContentAtom, ""); }catch(e){}
+        try{ store.set(encounterAtom, _pendingEncounterLevel); }catch(e){}
+        // clear any timeout just in case
+        if(_pendingEncounterTimeout){
+            clearTimeout(_pendingEncounterTimeout);
+            _pendingEncounterTimeout = null;
+        }
         _pendingEncounterLevel = null;
     }
 }
@@ -40,8 +48,20 @@ function triggerPendingEncounterNow(){
 window.addEventListener('keydown', (e) => {
     if(!e) return;
     const code = e.code || e.key;
+    // Only allow Space to trigger the pending encounter while the text box is visible
     if((code === 'Space' || code === 'Spacebar' || code === ' ') && _pendingEncounterLevel){
-        triggerPendingEncounterNow();
+        try{
+            // Allow triggering pending encounter as long as no encounter UI is currently active.
+            const activeEncounter = store.get(encounterAtom);
+            if(!activeEncounter){
+                // log debug info
+                try{ console.log('[initGame] triggerPendingEncounter keydown. pending:', _pendingEncounterLevel); }catch(e){}
+                triggerPendingEncounterNow();
+            }
+        }catch(err){
+            // fallback: trigger if pending
+            triggerPendingEncounterNow();
+        }
     }
 });
 
@@ -114,7 +134,20 @@ window.addEventListener("mousedown", () => {
     }
 
     // global handler invoked by the React encounter UI when player confirms result
-    window.onEncounterResult = function(level, correct){
+    window.onEncounterResult = function(meta, correct){
+        // meta may be a string (legacy) or an object { level, step }
+        let level = null;
+        let step = 0;
+        try{
+            if(typeof meta === 'string'){
+                level = meta;
+                step = 0;
+            } else if(meta && typeof meta === 'object'){
+                level = meta.level;
+                step = typeof meta.step === 'number' ? meta.step : 0;
+            }
+        }catch(e){}
+
         try{ store.set(encounterAtom, null); }catch(e){}
         try{ store.set(isTextBoxVisibleAtom, false); }catch(e){}
         try{ store.set(textBoxContentAtom, ""); }catch(e){}
@@ -124,12 +157,11 @@ window.addEventListener("mousedown", () => {
             _pendingEncounterTimeout = null;
             _pendingEncounterLevel = null;
         }
-        // small debug log to aid troubleshooting in browser console
-        try{ console.log('[initGame] onEncounterResult', level, correct); }catch(e){}
-        // record the result for this level
-        try{ if(level && Object.prototype.hasOwnProperty.call(encounterResults, level)) encounterResults[level] = !!correct; }catch(e){}
+
+        try{ console.log('[initGame] onEncounterResult', meta, correct); }catch(e){}
         // prevent immediate input for a short time to avoid 'stuck' movement
         try{ inputBlockedUntil = Date.now() + 220; }catch(e){}
+
         // if incorrect properly show by loss of hearts
         if(!correct) {
             try {
@@ -139,13 +171,57 @@ window.addEventListener("mousedown", () => {
 
             return;
         }
-        // on win: mark NPCs as moved/defeated so scenes can place them accordingly
-        if(level === 'level_one') movedNpc1 = true;
-        if(level === 'level_two') movedNpc2 = true;
-        if(level === 'level_three') defeatedNpc3 = true;
-        // on win: advance to the next level only for level_one (don't auto-teleport from level_two)
-        if(level === 'level_one' && currentScene === level){
-            fadeToScene("level_two");
+
+        // handle multi-step encounters per level
+        try{
+            if(level === 'level_one'){
+                // level one has single encounter by default
+                movedNpc1 = true;
+                if(currentScene === level){ fadeToScene('level_two'); }
+                return;
+            }
+
+            if(level === 'level_two'){
+                // two-step sequence: step 0 -> step 1 -> win level
+                if(step === 0){
+                    // first encounter won: show NPC dialog and queue second encounter
+                    try{ store.set(textBoxContentAtom, 'You bested me once... but not yet! Prepare yourself!'); }catch(e){}
+                    try{ store.set(isTextBoxVisibleAtom, true); }catch(err){}
+                    // set pending encounter to next step; player must press Space to trigger
+                    _pendingEncounterLevel = { level: 'level_two', step: 1 };
+                    return;
+                }
+                if(step === 1){
+                    // finished both encounters
+                    movedNpc2 = true;
+                    return;
+                }
+            }
+
+            if(level === 'level_three'){
+                // three-step sequence: steps 0,1,2 => on finishing step N-1 queue next
+                if(step === 0){
+                    try{ store.set(textBoxContentAtom, 'Impressive... but you will need more than that.'); }catch(e){}
+                    try{ store.set(isTextBoxVisibleAtom, true); }catch(err){}
+                    _pendingEncounterLevel = { level: 'level_three', step: 1 };
+                    return;
+                }
+                if(step === 1){
+                    try{ store.set(textBoxContentAtom, 'You are persistent. Final test!'); }catch(e){}
+                    try{ store.set(isTextBoxVisibleAtom, true); }catch(err){}
+                    _pendingEncounterLevel = { level: 'level_three', step: 2 };
+                    return;
+                }
+                if(step === 2){
+                    // completed all three
+                    defeatedNpc3 = true;
+                    return;
+                }
+            }
+        }catch(e){
+            // fallback: mark as completed if unknown
+            try{ if(level === 'level_two') movedNpc2 = true; }catch(e){}
+            try{ if(level === 'level_three') defeatedNpc3 = true; }catch(e){}
         }
     }
 
@@ -370,6 +446,17 @@ window.addEventListener("mousedown", () => {
             player.direction.x = 0;
             player.direction.y = 0;
 
+            // if a text box (NPC dialogue) is visible, block all player movement
+            try{
+                const textVisible = store.get(isTextBoxVisibleAtom);
+                if(textVisible){
+                    if(player.direction.eq(k.vec2(0, 0)) && !player.getCurAnim().name.includes("idle")){
+                        player.play(`${player.getCurAnim().name}-idle`);
+                    }
+                    return;
+                }
+            }catch(e){}
+
             // briefly ignore input after encounters to avoid sticky movement
             try{
                 if(Date.now() < inputBlockedUntil){
@@ -378,6 +465,17 @@ window.addEventListener("mousedown", () => {
                             player.play(`${player.getCurAnim().name}-idle`);
                         }
                     }catch(e){}
+                    return;
+                }
+            }catch(e){}
+
+            // if a text box (NPC dialogue) is visible, block all player movement
+            try{
+                const textVisible = store.get(isTextBoxVisibleAtom);
+                if(textVisible){
+                    if(player.direction.eq(k.vec2(0, 0)) && !player.getCurAnim().name.includes("idle")){
+                        player.play(`${player.getCurAnim().name}-idle`);
+                    }
                     return;
                 }
             }catch(e){}
@@ -485,7 +583,33 @@ window.addEventListener("mousedown", () => {
 
             //check when colliding from npx
             if(isCollidingNpc && k.isKeyPressed("space")){
+                // if an encounter UI is active, ignore this input to avoid overlapping dialogue
+                try{
+                    const activeEncounter = store.get(encounterAtom);
+                    if(activeEncounter) return;
+                }catch(e){}
 
+                // if boss already defeated, behave as passive NPC (no re-trigger)
+                if(defeatedNpc3){
+                    if(player.direction.eq(k.vec2(0,-1))){
+                        store.set(textBoxContentAtom, "Beautiful day, isn't it?");
+                        npc.play("npc-down");
+                    }
+                    if(player.direction.eq(k.vec2(0,1))){
+                        store.set(textBoxContentAtom, "Horrible day, isn't it?");
+                        npc.play("npc-up");
+                    }
+                    if(player.direction.eq(k.vec2(1,0))){
+                        store.set(textBoxContentAtom, "Boring day, isn't it?");
+                        npc.play("npc-left");
+                    }
+                    if(player.direction.eq(k.vec2(-1,0))){
+                        store.set(textBoxContentAtom, "Cool day, isn't it?");
+                        npc.play("npc-right");
+                    }
+                    store.set(isTextBoxVisibleAtom, true);
+                    return;
+                }
                 if(player.direction.eq(k.vec2(0,-1))){
                     store.set(textBoxContentAtom, "Final Boss JavaScript");
                     npc.play("npc-down");
@@ -686,6 +810,16 @@ window.addEventListener("mousedown", () => {
             player.direction.y = 0;
 
             //player input to move
+            // if a text box (NPC dialogue) is visible, block all player movement
+            try{
+                const textVisible = store.get(isTextBoxVisibleAtom);
+                if(textVisible){
+                    if(player.direction.eq(k.vec2(0, 0)) && !player.getCurAnim().name.includes("idle")){
+                        player.play(`${player.getCurAnim().name}-idle`);
+                    }
+                    return;
+                }
+            }catch(e){}
             if(k.isKeyDown("left")) player.direction.x = -1; //horizontal stuff
             if(k.isKeyDown("right")) player.direction.x = 1;
 
@@ -736,8 +870,13 @@ window.addEventListener("mousedown", () => {
                 }
             }catch(e){}
 
-            //check when colliding from npc
+            //check when colliding from npx
             if(isCollidingNpc && k.isKeyPressed("space")){
+                // if an encounter UI is active, ignore this input to avoid overlapping dialogue
+                try{
+                    const activeEncounter = store.get(encounterAtom);
+                    if(activeEncounter) return;
+                }catch(e){}
 
                 // if NPC already moved (player won), show passive dialogue but do NOT re-trigger the encounter
                 if(movedNpc2){
@@ -758,6 +897,12 @@ window.addEventListener("mousedown", () => {
                         npc.play("npc-right");
                     }
                     store.set(isTextBoxVisibleAtom, true);
+                    return;
+                }
+
+                // If a pending multi-step encounter for level_two is already queued (step > 0),
+                // don't re-show the initial "I am the CSS Wizard" dialogue or re-schedule.
+                if(_pendingEncounterLevel && typeof _pendingEncounterLevel === 'object' && _pendingEncounterLevel.level === 'level_two' && (_pendingEncounterLevel.step || 0) > 0){
                     return;
                 }
 
@@ -1012,6 +1157,11 @@ window.addEventListener("mousedown", () => {
 
             //check when colliding from npx
             if(isCollidingNpc && k.isKeyPressed("space")){
+                // if an encounter UI is active, ignore this input to avoid overlapping dialogue
+                try{
+                    const activeEncounter = store.get(encounterAtom);
+                    if(activeEncounter) return;
+                }catch(e){}
 
                 if(player.direction.eq(k.vec2(0,-1))){
                     store.set(textBoxContentAtom, "Get Ready! if you can't do this you will never beat the CSS wizard and King JavaScript, HTML HERO!");
