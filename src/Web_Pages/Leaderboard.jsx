@@ -81,7 +81,7 @@ useEffect(() => {
 
       {/* 3. Back Button - Always visible at the bottom */}
       <div className="pb-8 w-full flex justify-center">
-        <MainButton title="GO BACK" func={() => navigate('/')} />
+        <MainButton title="GO BACK" func={() => navigate('/Title')} />
       </div>
 
       {/* Retro Scrollbar Styling */}

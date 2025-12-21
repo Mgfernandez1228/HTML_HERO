@@ -2,12 +2,15 @@ import { useNavigate } from 'react-router-dom';
 
 import { startGame } from '../main.jsx';
 import MainButton from "../NotUIReactComponents/MainButton.jsx"
+import Navbar from '../NotUIReactComponents/Navbar.jsx';
 
 export default function Home(){
 
   const navigate = useNavigate();
     
 return (
+<>
+  <Navbar />
   <div className="relative flex flex-col items-center justify-center min-h-screen w-full bg-black animate-gradient text-white px-4 sm:px-8">
     <div className="relative z-10 flex flex-col items-center gap-10 sm:gap-16 lg:gap-20">
       <h1 style={{fontFamily: '"gameboy", "Courier New", Courier, monospace'}} className="font-extrabold text-4xl sm:text-6xl md:text-7xl lg:text-9xl text-white 
@@ -23,6 +26,7 @@ return (
       </div>
     </div>
   </div>
+</>
 );
 
 }

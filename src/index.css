@@ -34,7 +34,7 @@ body {
 
 body {
     position: relative; /* allows children to position relative */
-    background-color: rgb(4, 63, 66);
+    background-color: rgb(5, 30, 31);
     font-family: sans-serif;
     overflow: hidden; /* prevents scrollbars */
 }
