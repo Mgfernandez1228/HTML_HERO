@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import './Hearts.css';
 
 export default function Hearts({
-  size = 48,
+  size = 96,
   top = 20,
   right = 20,
   maxHearts = 3,
@@ -42,11 +42,13 @@ export default function Hearts({
         return (
           <span
             key={i}
-            className={isDamaged ? 'heart-damage' : ''}
-            style={{ opacity: isFilled ? 1 : 0.25 }}
-          >
-            ❤️
-          </span>
+            className={`heart ${isDamaged ? 'heart-damage' : ''}`}
+            style={{
+              opacity: isFilled ? 1 : 0.25,
+              ['--heart-size']: `${size}px`,
+            }}
+            aria-hidden={true}
+          />
         );
       })}
     </div>

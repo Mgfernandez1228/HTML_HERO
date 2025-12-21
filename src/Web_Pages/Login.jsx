@@ -74,7 +74,7 @@ export default function Login({ setUser }) {
                 type="text" 
                 required
                 value={username}
-                onChange={(e) => setUsername(e.target.value.toUpperCase())}
+                onChange={(e) => setUsername(e.target.value)}
                 placeholder="PLAYER_NAME"
                 style={themeFont}
                 className="w-full bg-black border-b-2 border-gray-700 text-white p-3 outline-none focus:border-indigo-400 transition-colors placeholder:text-gray-700"
@@ -89,7 +89,7 @@ export default function Login({ setUser }) {
                 type="password" 
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value.toUpperCase())}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="********"
                 style={themeFont}
                 className="w-full bg-black border-b-2 border-gray-700 text-white p-3 outline-none focus:border-indigo-400 transition-colors placeholder:text-gray-700"

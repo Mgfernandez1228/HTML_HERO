@@ -17,3 +17,16 @@
     heart-shake 0.3s ease-in-out,
     heart-flash 0.3s ease-in-out;
 }
+
+/* New heart image styling: uses image placed in public/heart.png */
+.heart {
+  display: inline-block;
+  width: var(--heart-size, 48px);
+  height: var(--heart-size, 48px);
+  background-image: url('/heart.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  transform-origin: center;
+  will-change: transform, filter, opacity;
+}
