@@ -28,7 +28,7 @@ export default function Home() {
           <div className="pt-8">
             
               <button 
-                onClick={() => navigate('/Login')}
+                onClick={() => navigate('/Title')}
                 style={pixelFont}
                 className="border-2 border-white px-10 py-4 hover:bg-white hover:text-black transition-all text-xl tracking-tighter"
               >
