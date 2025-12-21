@@ -1,0 +1,78 @@
+.rotate-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rotate-content {
+    text-align: center;
+    color: white;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    padding: 20px;
+}
+
+.rotate-icon {
+    font-size: 64px;
+    animation: tilt 1.5s ease-in-out infinite;
+    display: inline-block;
+}
+
+.rotate-arrow {
+    font-size: 48px;
+    margin: 20px 0;
+    animation: spin 2s linear infinite;
+    display: inline-block;
+}
+
+.rotate-text {
+    font-size: 18px;
+    margin: 20px 0 10px;
+    color: #4ade80;
+}
+
+.rotate-subtext {
+    font-size: 12px;
+    color: #9ca3af;
+    max-width: 250px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+@keyframes tilt {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(90deg); }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.rotate-dismiss-btn {
+    margin-top: 30px;
+    padding: 12px 24px;
+    background: transparent;
+    border: 2px solid #6b7280;
+    color: #9ca3af;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.rotate-dismiss-btn:hover {
+    border-color: #4ade80;
+    color: #4ade80;
+}
+
+.rotate-dismiss-btn:active {
+    transform: scale(0.95);
+}
+
