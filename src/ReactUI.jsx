@@ -6,6 +6,7 @@ import GameOver from "./ReactComponents/GameOver.jsx";
 import { useCallback } from 'react';
 import Hearts from "./ReactComponents/Hearts.jsx";
 import Joystick from "./ReactComponents/Joystick.jsx";
+import RotateDevice from "./ReactComponents/RotateDevice.jsx";
 
 export default function ReactUI() {
     const [encounter, setEncounter] = useAtom(encounterAtom);
@@ -44,6 +45,7 @@ export default function ReactUI() {
 
     return(
         <div>
+            <RotateDevice />
             <Hearts/>
             <TextBox />
             <Joystick />
