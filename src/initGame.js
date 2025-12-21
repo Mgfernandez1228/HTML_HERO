@@ -49,6 +49,45 @@ export default function initGame(){
 
     const k = initKaplay();
 
+    function fadeToScene(sceneName, duration = 0.5) {
+    const overlay = k.add([
+        k.rect(k.width(), k.height()),
+        k.pos(0, 0),
+        k.color(0, 0, 0),
+        k.opacity(0),
+        k.fixed(),
+        k.z(9999),
+    ]);
+
+    // fade to black
+    overlay.onUpdate(() => {
+        overlay.opacity = Math.min(overlay.opacity + k.dt() / duration, 1);
+    });
+
+    // once fully black, change scene
+    k.wait(duration, () => {
+        k.go(sceneName);
+
+        // fade back in
+        const fadeIn = k.add([
+            k.rect(k.width(), k.height()),
+            k.pos(0, 0),
+            k.color(0, 0, 0),
+            k.opacity(1),
+            k.fixed(),
+            k.z(9999),
+        ]);
+
+        fadeIn.onUpdate(() => {
+            fadeIn.opacity = Math.max(fadeIn.opacity - k.dt() / duration, 0);
+            if (fadeIn.opacity <= 0) {
+                fadeIn.destroy();
+            }
+        });
+    });
+}
+
+
 // 1. Give the canvas a way to be focused
 const canvas = k.canvas;
 canvas.setAttribute("tabindex", "0"); 
@@ -101,7 +140,7 @@ window.addEventListener("mousedown", () => {
         if(level === 'level_three') defeatedNpc3 = true;
         // on win: advance to the next level only for level_one (don't auto-teleport from level_two)
         if(level === 'level_one' && currentScene === level){
-            k.go('level_two');
+            fadeToScene("level_two");
         }
     }
 
@@ -574,7 +613,7 @@ window.addEventListener("mousedown", () => {
 
         warpToThree.onCollide("player", () => {
 
-            k.go("level_three");
+            fadeToScene("level_three");
             retTo2 = false;
 
         })
@@ -880,7 +919,7 @@ window.addEventListener("mousedown", () => {
         ]);
 
         warpToTwo.onCollide("player", () => {
-            k.go("level_two");
+            fadeToScene("level_two");
             retTo1 = false;
             retTo2 = false;
         })
