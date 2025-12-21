@@ -1,5 +1,8 @@
 import initKaplay from "./kaplayCtx";
 import { isTextBoxVisibleAtom, store, textBoxContentAtom, encounterAtom, heartsAtom} from "./store";
+import levelOneEncounters, { npcIntro as levelOneIntro, passiveDialog as levelOnePassive } from "./encounters/level_one";
+import levelTwoEncounters, { npcIntro as levelTwoIntro, passiveDialog as levelTwoPassive } from "./encounters/level_two";
+import levelThreeEncounters, { npcIntro as levelThreeIntro, passiveDialog as levelThreePassive } from "./encounters/level_three";
 
 // pending encounter scheduling: when an NPC dialog opens we schedule the encounter
 let _pendingEncounterTimeout = null;
@@ -142,10 +145,10 @@ window.addEventListener('keydown', (e) => {
             if(sceneName === 'level_three' && defeatedNpc3){
                 try{
                     const facing = getPlayerFacing(player);
-                    if(facing.eq(k.vec2(0,-1))){ store.set(textBoxContentAtom, "Beautiful day, isn't it?"); window.__currentNpc.play('npc-down'); }
-                    else if(facing.eq(k.vec2(0,1))){ store.set(textBoxContentAtom, "Horrible day, isn't it?"); window.__currentNpc.play('npc-up'); }
-                    else if(facing.eq(k.vec2(1,0))){ store.set(textBoxContentAtom, "Boring day, isn't it?"); window.__currentNpc.play('npc-left'); }
-                    else if(facing.eq(k.vec2(-1,0))){ store.set(textBoxContentAtom, "Cool day, isn't it?"); window.__currentNpc.play('npc-right'); }
+                    if(facing.eq(k.vec2(0,-1))){ store.set(textBoxContentAtom, levelThreePassive.down); window.__currentNpc.play('npc-down'); }
+                    else if(facing.eq(k.vec2(0,1))){ store.set(textBoxContentAtom, levelThreePassive.up); window.__currentNpc.play('npc-up'); }
+                    else if(facing.eq(k.vec2(1,0))){ store.set(textBoxContentAtom, levelThreePassive.right); window.__currentNpc.play('npc-left'); }
+                    else if(facing.eq(k.vec2(-1,0))){ store.set(textBoxContentAtom, levelThreePassive.left); window.__currentNpc.play('npc-right'); }
                     store.set(isTextBoxVisibleAtom, true);
                 }catch(e){}
                 return;
@@ -176,17 +179,17 @@ window.addEventListener('keydown', (e) => {
 
             // set a simple dialogue depending on scene and schedule the encounter
             if(sceneName === 'level_two'){
-                store.set(textBoxContentAtom, "I am the CSS Wizard, You might be good enough to deal with HTML, but you are never getting past me!");
+                store.set(textBoxContentAtom, levelTwoIntro);
                 playFacing(dx, dy);
                 store.set(isTextBoxVisibleAtom, true);
                 scheduleEncounter('level_two');
             } else if(sceneName === 'level_three'){
-                store.set(textBoxContentAtom, "Final Boss JavaScript");
+                store.set(textBoxContentAtom, levelThreeIntro);
                 playFacing(dx, dy);
                 store.set(isTextBoxVisibleAtom, true);
                 scheduleEncounter('level_three');
             } else if(sceneName === 'level_one'){
-                store.set(textBoxContentAtom, "Get Ready! if you can't do this you will never beat the CSS wizard and King JavaScript, HTML HERO!");
+                store.set(textBoxContentAtom, levelOneIntro);
                 playFacing(dx, dy);
                 store.set(isTextBoxVisibleAtom, true);
                 scheduleEncounter('level_one');
@@ -815,31 +818,31 @@ window.addEventListener("mousedown", () => {
                 // if boss already defeated, behave as passive NPC (no re-trigger)
                 if(defeatedNpc3){
                     const facing = getPlayerFacing(player);
-                    if(facing.eq(k.vec2(0,-1))){ store.set(textBoxContentAtom, "Beautiful day, isn't it?"); npc.play("npc-down"); }
-                    else if(facing.eq(k.vec2(0,1))){ store.set(textBoxContentAtom, "Horrible day, isn't it?"); npc.play("npc-up"); }
-                    else if(facing.eq(k.vec2(1,0))){ store.set(textBoxContentAtom, "Boring day, isn't it?"); npc.play("npc-left"); }
-                    else if(facing.eq(k.vec2(-1,0))){ store.set(textBoxContentAtom, "Cool day, isn't it?"); npc.play("npc-right"); }
+                    if(facing.eq(k.vec2(0,-1))){ store.set(textBoxContentAtom, levelThreePassive.down); npc.play("npc-down"); }
+                    else if(facing.eq(k.vec2(0,1))){ store.set(textBoxContentAtom, levelThreePassive.up); npc.play("npc-up"); }
+                    else if(facing.eq(k.vec2(1,0))){ store.set(textBoxContentAtom, levelThreePassive.right); npc.play("npc-left"); }
+                    else if(facing.eq(k.vec2(-1,0))){ store.set(textBoxContentAtom, levelThreePassive.left); npc.play("npc-right"); }
                     store.set(isTextBoxVisibleAtom, true);
                     return;
                 }
                 const facing = getPlayerFacing(player);
                 if(facing.eq(k.vec2(0,-1))){
-                    store.set(textBoxContentAtom, "Final Boss JavaScript");
+                    store.set(textBoxContentAtom, levelThreeIntro);
                     npc.play("npc-down");
                 }
 
                 if(facing.eq(k.vec2(0,1))){
-                    store.set(textBoxContentAtom, "Final Boss JavaScript");
+                    store.set(textBoxContentAtom, levelThreeIntro);
                     npc.play("npc-up");
                 }
 
                 if(facing.eq(k.vec2(1,0))){
-                    store.set(textBoxContentAtom, "Final Boss JavaScript");
+                    store.set(textBoxContentAtom, levelThreeIntro);
                     npc.play("npc-left");
                 }
 
                 if(facing.eq(k.vec2(-1,0))){
-                    store.set(textBoxContentAtom, "Final Boss JavaScript");
+                    store.set(textBoxContentAtom, levelThreeIntro);
                     npc.play("npc-right");
                 }
 
@@ -1107,19 +1110,19 @@ window.addEventListener("mousedown", () => {
                 if(movedNpc2){
                     const facing = getPlayerFacing(player);
                     if(facing.eq(k.vec2(0,-1))){
-                        store.set(textBoxContentAtom, "Beautiful day, isn't it?");
+                        store.set(textBoxContentAtom, levelTwoPassive.down);
                         npc.play("npc-down");
                     }
                     if(facing.eq(k.vec2(0,1))){
-                        store.set(textBoxContentAtom, "Horrible day, isn't it?");
+                        store.set(textBoxContentAtom, levelTwoPassive.up);
                         npc.play("npc-up");
                     }
                     if(facing.eq(k.vec2(1,0))){
-                        store.set(textBoxContentAtom, "Boring day, isn't it?");
+                        store.set(textBoxContentAtom, levelTwoPassive.right);
                         npc.play("npc-left");
                     }
                     if(facing.eq(k.vec2(-1,0))){
-                        store.set(textBoxContentAtom, "Cool day, isn't it?");
+                        store.set(textBoxContentAtom, levelTwoPassive.left);
                         npc.play("npc-right");
                     }
                     store.set(isTextBoxVisibleAtom, true);
@@ -1134,7 +1137,7 @@ window.addEventListener("mousedown", () => {
 
                 const facing = getPlayerFacing(player);
                 if(facing.eq(k.vec2(0,-1))){
-                    store.set(textBoxContentAtom, "I am the CSS Wizard, You might be good enough to deal with HTML, but you are never getting past me!");
+                    store.set(textBoxContentAtom, levelTwoIntro);
                     npc.play("npc-down");
                 }
 
@@ -1393,22 +1396,22 @@ window.addEventListener("mousedown", () => {
                 const facing = getPlayerFacing(player);
 
                 if(facing.eq(k.vec2(0,-1))){
-                    store.set(textBoxContentAtom, "Get Ready! if you can't do this you will never beat the CSS wizard and King JavaScript, HTML HERO!");
+                    store.set(textBoxContentAtom, levelOneIntro);
                     npc.play("npc-down");
                 }
 
                 if(facing.eq(k.vec2(0,1))){
-                    store.set(textBoxContentAtom, "Horrible day, isn't it?");
+                    store.set(textBoxContentAtom, levelOnePassive.up);
                     npc.play("npc-up");
                 }
 
                 if(facing.eq(k.vec2(1,0))){
-                    store.set(textBoxContentAtom, "Boring day, isn't it?");
+                    store.set(textBoxContentAtom, levelOnePassive.right);
                     npc.play("npc-left");
                 }
 
                 if(facing.eq(k.vec2(-1,0))){
-                    store.set(textBoxContentAtom, "Cool day, isn't it?");
+                    store.set(textBoxContentAtom, levelOnePassive.left);
                     npc.play("npc-right");
                 }
 

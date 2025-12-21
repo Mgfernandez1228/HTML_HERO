@@ -30,3 +30,12 @@ export default [
     ],
   },
 ];
+
+// Editable NPC lines for level three
+export const npcIntro = "Final Boss JavaScript";
+export const passiveDialog = {
+  down: "Beautiful day, isn't it?",
+  up: "Horrible day, isn't it?",
+  right: "Boring day, isn't it?",
+  left: "Cool day, isn't it?",
+};

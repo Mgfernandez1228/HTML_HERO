@@ -10,3 +10,12 @@ export default [
     ],
   },
 ];
+
+// Editable NPC lines for level one
+export const npcIntro = "Get Ready! if you can't do this you will never beat the CSS wizard and King JavaScript, HTML HERO!";
+export const passiveDialog = {
+  down: "Beautiful day, isn't it?",
+  up: "Horrible day, isn't it?",
+  right: "Boring day, isn't it?",
+  left: "Cool day, isn't it?",
+};

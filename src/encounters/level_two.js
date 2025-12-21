@@ -20,3 +20,12 @@ export default [
     ],
   },
 ];
+
+// Editable NPC lines for level two
+export const npcIntro = "I am the CSS Wizard, You might be good enough to deal with HTML, but you are never getting past me!";
+export const passiveDialog = {
+  down: "Beautiful day, isn't it?",
+  up: "Horrible day, isn't it?",
+  right: "Boring day, isn't it?",
+  left: "Cool day, isn't it?",
+};
