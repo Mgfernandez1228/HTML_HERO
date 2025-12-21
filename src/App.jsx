@@ -3,6 +3,8 @@ import './website.css'
 
 import Home from './Web_Pages/Home.jsx'
 import Login from './Web_Pages/Login.jsx'
+import Signin from './Web_Pages/Signin.jsx'
+import About from './Web_Pages/About.jsx'
 
 import Title from './Web_Pages/Title.jsx'
 import Leaderboard from './Web_Pages/Leaderboard.jsx';
@@ -13,6 +15,8 @@ return (
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/Login" element={<Login />} />
+        <Route path="/Signin" element={<Signin />} />
+        <Route path="/About" element={<About />} />
 
 
         <Route path="/Title" element={<Title />} />

@@ -1,5 +1,5 @@
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
 import Navbar from '../NotUIReactComponents/Navbar';
 
 export default function Login() {
@@ -18,12 +18,12 @@ export default function Login() {
         
         {/* Header */}
         <div className="text-center mb-10">
-          <h2 style={themeFont} className="text-3xl text-white drop-shadow-[0_0_0px_#00ffff] mb-2">
-            Login <span className="text-cyan-400">AUTH</span>
+          <h2 style={themeFont} className="text-3xl text-white drop-shadow-[0_0_8px_#00ffff] mb-2">
+            PLAYER <span className="text-cyan-400">AUTH</span>
           </h2>
-          <Link to={'/Signin'} style={themeFont} className="text-[10px] text-cyan-500/60 tracking-widest uppercase hover:text-white">
-            No Account? Click Here
-          </Link>
+          <a style={themeFont} className="text-[10px] text-cyan-500/60 tracking-widest uppercase">
+            Identify yourself, Hero
+          </a>
         </div>
 
         {/* Form */}
@@ -62,7 +62,7 @@ export default function Login() {
             </button>
             
             <button 
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/Title')}
               style={themeFont}
               className="w-full text-gray-500 hover:text-cyan-400 text-[10px] transition-colors uppercase tracking-widest"
             >
