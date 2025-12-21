@@ -79,10 +79,9 @@ module.exports = function(app, db) {
             const userId = req.params.id;
             const updatedData = req.body; 
 
-            // Only allow updating specific fields to prevent players from changing their IDs
+            // Only allow updating specific fields 
             const allowedUpdates = { $set: {} };
             if (updatedData.score !== undefined) allowedUpdates.$set.score = updatedData.score;
-            if (updatedData.level !== undefined) allowedUpdates.$set.level = updatedData.level;
 
             const result = await usersCollection.updateOne(
                 { _id: new ObjectId(userId) }, 
