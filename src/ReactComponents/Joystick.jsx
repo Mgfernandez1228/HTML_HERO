@@ -61,21 +61,21 @@ export default function Joystick() {
 
     // Touch event handlers
     const handleTouchStart = useCallback((e) => {
-        e.preventDefault();
+      
         setIsDragging(true);
         const touch = e.touches[0];
         handleMove(touch.clientX, touch.clientY);
     }, [handleMove]);
 
     const handleTouchMove = useCallback((e) => {
-        e.preventDefault();
+       
         if (!isDragging) return;
         const touch = e.touches[0];
         handleMove(touch.clientX, touch.clientY);
     }, [handleMove, isDragging]);
 
     const handleTouchEnd = useCallback((e) => {
-        e.preventDefault();
+        
         handleEnd();
     }, [handleEnd]);
 
@@ -93,8 +93,8 @@ export default function Joystick() {
         };
 
         window.addEventListener('touchmove', onTouchMove, { passive: false });
-        window.addEventListener('touchend', onTouchEnd);
-        window.addEventListener('touchcancel', onTouchEnd);
+        window.addEventListener('touchend', onTouchEnd, { passive: false });
+        window.addEventListener('touchcancel', onTouchEnd, { passive: false });
 
         return () => {
             window.removeEventListener('touchmove', onTouchMove);

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react'; // Added useRef
 import { useSetAtom } from 'jotai';
 import { mobileButtonAtom } from '../store.js';
 
@@ -6,6 +6,10 @@ export default function ActionButton() {
     const setMobileButton = useSetAtom(mobileButtonAtom);
     const [isTouchDevice, setIsTouchDevice] = useState(false);
     const [isPressed, setIsPressed] = useState(false);
+    
+    // Track the last time a press was processed to prevent "double-firing"
+    const lastPressTime = useRef(0);
+    const COOLDOWN_MS = 300; 
 
     useEffect(() => {
         const mq = window.matchMedia("(pointer: coarse)");
@@ -16,9 +20,14 @@ export default function ActionButton() {
     }, []);
 
     const handlePress = useCallback(() => {
+        const now = Date.now();
+        // If the button was pressed too recently, ignore this event
+        if (now - lastPressTime.current < COOLDOWN_MS) return;
+        lastPressTime.current = now;
+
         setIsPressed(true);
         setMobileButton(true);
-        // Dispatching with more detail for better engine compatibility
+        
         window.dispatchEvent(new KeyboardEvent('keydown', { 
             code: 'Space', 
             key: ' ', 
@@ -28,6 +37,9 @@ export default function ActionButton() {
     }, [setMobileButton]);
 
     const handleRelease = useCallback(() => {
+        // Only trigger release logic if the button was actually considered "pressed"
+        if (!isPressed) return;
+
         setIsPressed(false);
         setMobileButton(false);
         window.dispatchEvent(new KeyboardEvent('keyup', { 
@@ -36,7 +48,7 @@ export default function ActionButton() {
             bubbles: true,
             cancelable: true
         }));
-    }, [setMobileButton]);
+    }, [isPressed, setMobileButton]);
 
     if (!isTouchDevice) return null;
 
@@ -48,9 +60,11 @@ export default function ActionButton() {
                 transition-transform duration-75
                 ${isPressed ? 'scale-90' : 'scale-100'}
             `}
-            // Important: Use both to support emulator (mouse) and physical device (touch)
+            // e.preventDefault() on Touch prevents the "synthetic" Mouse event from firing
             onTouchStart={(e) => { e.preventDefault(); handlePress(); }}
             onTouchEnd={(e) => { e.preventDefault(); handleRelease(); }}
+            
+            // Mouse events kept for desktop testing/emulators
             onMouseDown={(e) => { if (e.button === 0) handlePress(); }}
             onMouseUp={handleRelease}
             onMouseLeave={isPressed ? handleRelease : undefined}
