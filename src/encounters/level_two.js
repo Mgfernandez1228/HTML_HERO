@@ -1,28 +1,28 @@
 export default [
   {
-    title: 'Level Two - Encounter 1',
-    text: '<p>A sleepy guard stands watch. What do you do?</p>',
+    title: 'Doing CSS',
+    text: '<p>I want to outline some text, How may I do that?</p>',
     choices: [
-      { label: 'Steal the key from the guard', isCorrect: false },
-      { label: 'Distract the guard with a joke', isCorrect: true },
-      { label: 'Charge the gate', isCorrect: false },
-      { label: 'Hide in the shadows', isCorrect: false },
+      { label: 'Use text-outline', isCorrect: false },
+      { label: 'Use -webkit-text-stroke', isCorrect: true },
+      { label: 'Use text-decoration', isCorrect: false },
+      { label: 'Add a border to the text', isCorrect: false },
     ],
   },
   {
-    title: 'Level Two - Encounter 2',
-    text: '<p>The guard recovers—make your next move.</p>',
+    title: 'More CSS',
+    text: '<p>I want a margin with the top and bottom at 10px, left and right at 20px. What do I do?</p>',
     choices: [
-      { label: 'Fight him head-on', isCorrect: false },
-      { label: 'Slip the key while he yawns', isCorrect: true },
-      { label: 'Call for reinforcements', isCorrect: false },
-      { label: 'Feign surrender', isCorrect: false },
+      { label: 'margin: 20px 10px;', isCorrect: false },
+      { label: 'margin: 10px 20px;', isCorrect: true },
+      { label: 'margin: 10px 20px', isCorrect: false },
+      { label: 'margin: 10px 10x 20px 20px;', isCorrect: false },
     ],
   },
 ];
 
 // Editable NPC lines for level two
-export const npcIntro = "I am the CSS Wizard, You might be good enough to deal with HTML, but you are never getting past me!";
+export const npcIntro = "I am the CSS Wizard. You may be good enough for basic HTML tags, but can you handle CSS? Prove your worth!";
 export const passiveDialog = {
   down: "Beautiful day, isn't it?",
   up: "Horrible day, isn't it?",
