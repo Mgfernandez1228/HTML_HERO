@@ -52,7 +52,7 @@ module.exports = function(app, db) {
                 message: "Login successful", 
                 token, 
                 username: user.username,
-                userId: user._id 
+                _id: user._id 
             });
         } catch (error) {
             res.status(500).json({ error: 'Login failed' });
@@ -77,19 +77,32 @@ module.exports = function(app, db) {
     app.put('/api/users/:id', async (req, res) => {
         try {
             const userId = req.params.id;
-            const updatedData = req.body; 
+            const { score } = req.body; 
 
-            // Only allow updating specific fields 
-            const allowedUpdates = { $set: {} };
-            if (updatedData.score !== undefined) allowedUpdates.$set.score = updatedData.score;
+            // 1. Ensure the score exists and is a Number
+            if (score === undefined) {
+                return res.status(400).json({ error: 'No score provided' });
+            }
 
+            const numericScore = Number(score);
+
+            // 2. Use $max instead of $set
+            // This automatically compares the new score with the existing one
             const result = await usersCollection.updateOne(
                 { _id: new ObjectId(userId) }, 
-                allowedUpdates
+                { $max: { score: numericScore } } 
             );
             
-            res.status(200).json({ message: 'Progress saved' });
+            // 3. Optional: Send back whether it was actually a new high score
+            const isHighScore = result.modifiedCount > 0;
+
+            res.status(200).json({ 
+                message: isHighScore ? 'New high score!' : 'Score processed',
+                updated: isHighScore
+            });
+
         } catch (error) {
+            console.error("Update Error:", error);
             res.status(500).json({ error: 'Update failed' });
         }
     });
