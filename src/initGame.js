@@ -442,6 +442,28 @@ window.addEventListener("mousedown", () => {
             },
         });
 
+        k.loadSprite("npcs", "enemies.png", {
+            sliceY:2,
+            sliceX:8,
+            anims: {
+                //arbitrary names for the animations does not matter
+                "npc3-down-idle": 0,
+                "npc3-up-idle": 1,
+                "npc3-right-idle": 2,
+                "npc3-left-idle": 3,
+
+                "npc1-down-idle": 4,
+                "npc1-up-idle": 5,
+                "npc1-right-idle": 6,
+                "npc1-left-idle": 7,
+
+                "npc2-down-idle": 8,
+                "npc2-up-idle": 9,
+                "npc2-right-idle": 10,
+                "npc2-left-idle": 11,
+            },
+        });
+
     //for proper player placement between screens
     let retTo2 = false;
     let retTo1 = false;
@@ -464,7 +486,7 @@ window.addEventListener("mousedown", () => {
         k.add([k.sprite("background3"), k.pos(0, -70), k.scale(8)]);
 
         const npc = k.add([
-                k.sprite("characters", {anim: "npc-left"}),
+                k.sprite("npcs", {anim: "npc3-left-idle"}),
                 k.area(),
                 k.body({isStatic: true}),
                 k.anchor("center"),
@@ -793,10 +815,6 @@ window.addEventListener("mousedown", () => {
                 if(k.isKeyDown("down")) player.direction.y = 1;
             }
 
-            const mobileButton = store.get(mobileButtonAtom);
-
-
-
             //smooth animations to keep nice cycle
             // For animations, we need to check dominant direction
             const dominantX = Math.abs(player.direction.x) > Math.abs(player.direction.y);
@@ -851,32 +869,32 @@ window.addEventListener("mousedown", () => {
                 // if boss already defeated, behave as passive NPC (no re-trigger)
                 if(defeatedNpc3){
                     const facing = getPlayerFacing(player);
-                    if(facing.eq(k.vec2(0,-1))){ store.set(textBoxContentAtom, levelThreePassive.down); npc.play("npc-down"); }
-                    else if(facing.eq(k.vec2(0,1))){ store.set(textBoxContentAtom, levelThreePassive.up); npc.play("npc-up"); }
-                    else if(facing.eq(k.vec2(1,0))){ store.set(textBoxContentAtom, levelThreePassive.right); npc.play("npc-left"); }
-                    else if(facing.eq(k.vec2(-1,0))){ store.set(textBoxContentAtom, levelThreePassive.left); npc.play("npc-right"); }
+                    if(facing.eq(k.vec2(0,-1))){ store.set(textBoxContentAtom, levelThreePassive.down); npc.play("npc3-down-idle"); }
+                    else if(facing.eq(k.vec2(0,1))){ store.set(textBoxContentAtom, levelThreePassive.up); npc.play("npc3-up-idle"); }
+                    else if(facing.eq(k.vec2(1,0))){ store.set(textBoxContentAtom, levelThreePassive.right); npc.play("npc3-left-idle"); }
+                    else if(facing.eq(k.vec2(-1,0))){ store.set(textBoxContentAtom, levelThreePassive.left); npc.play("npc3-right-idle"); }
                     store.set(isTextBoxVisibleAtom, true);
                     return;
                 }
                 const facing = getPlayerFacing(player);
                 if(facing.eq(k.vec2(0,-1))){
                     store.set(textBoxContentAtom, levelThreeIntro);
-                    npc.play("npc-down");
+                    npc.play("npc3-down-idle");
                 }
 
                 if(facing.eq(k.vec2(0,1))){
                     store.set(textBoxContentAtom, levelThreeIntro);
-                    npc.play("npc-up");
+                    npc.play("npc3-up-idle");
                 }
 
                 if(facing.eq(k.vec2(1,0))){
                     store.set(textBoxContentAtom, levelThreeIntro);
-                    npc.play("npc-left");
+                    npc.play("npc3-left-idle");
                 }
 
                 if(facing.eq(k.vec2(-1,0))){
                     store.set(textBoxContentAtom, levelThreeIntro);
-                    npc.play("npc-right");
+                    npc.play("npc3-right-idle");
                 }
 
                 store.set(isTextBoxVisibleAtom, true);
@@ -902,7 +920,7 @@ window.addEventListener("mousedown", () => {
             npc_position = [328, 208]
 
         let npc = k.add([
-                k.sprite("characters", {anim: "npc-down"}),
+                k.sprite("npcs", {anim: "npc2-down-idle"}),
                 k.area(),
                 k.body({isStatic: true}),
                 k.anchor("center"),
@@ -1175,19 +1193,19 @@ window.addEventListener("mousedown", () => {
                     const facing = getPlayerFacing(player);
                     if(facing.eq(k.vec2(0,-1))){
                         store.set(textBoxContentAtom, levelTwoPassive.down);
-                        npc.play("npc-down");
+                        npc.play("npc2-down-idle");
                     }
                     if(facing.eq(k.vec2(0,1))){
                         store.set(textBoxContentAtom, levelTwoPassive.up);
-                        npc.play("npc-up");
+                        npc.play("npc2-up-idle");
                     }
                     if(facing.eq(k.vec2(1,0))){
                         store.set(textBoxContentAtom, levelTwoPassive.right);
-                        npc.play("npc-left");
+                        npc.play("npc2-left-idle");
                     }
                     if(facing.eq(k.vec2(-1,0))){
                         store.set(textBoxContentAtom, levelTwoPassive.left);
-                        npc.play("npc-right");
+                        npc.play("npc2-right-idle");
                     }
                     store.set(isTextBoxVisibleAtom, true);
                     return;
@@ -1202,7 +1220,7 @@ window.addEventListener("mousedown", () => {
                 const facing = getPlayerFacing(player);
                 if(facing.eq(k.vec2(0,-1))){
                     store.set(textBoxContentAtom, levelTwoIntro);
-                    npc.play("npc-down");
+                    npc.play("npc2-down-idle");
                 }
 
 
@@ -1227,7 +1245,7 @@ window.addEventListener("mousedown", () => {
             npc_position = [-100, -100]
 
         const npc = k.add([
-                k.sprite("characters", {anim: "npc-down"}),
+                k.sprite("npcs", {anim: "npc1-down-idle"}),
                 k.area(),
                 k.body({isStatic: true}),
                 k.anchor("center"),
@@ -1474,22 +1492,22 @@ window.addEventListener("mousedown", () => {
 
                 if(facing.eq(k.vec2(0,-1))){
                     store.set(textBoxContentAtom, levelOneIntro);
-                    npc.play("npc-down");
+                    npc.play("npc1-down-idle");
                 }
 
                 if(facing.eq(k.vec2(0,1))){
                     store.set(textBoxContentAtom, levelOnePassive.up);
-                    npc.play("npc-up");
+                    npc.play("npc1-up-idle");
                 }
 
                 if(facing.eq(k.vec2(1,0))){
                     store.set(textBoxContentAtom, levelOnePassive.right);
-                    npc.play("npc-left");
+                    npc.play("npc1-left-idle");
                 }
 
                 if(facing.eq(k.vec2(-1,0))){
                     store.set(textBoxContentAtom, levelOnePassive.left);
-                    npc.play("npc-right");
+                    npc.play("npc1-right-idle");
                 }
 
                 store.set(isTextBoxVisibleAtom, true);
