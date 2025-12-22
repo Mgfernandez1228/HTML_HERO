@@ -21,7 +21,7 @@ export default [
   },
   {
     title: 'The Ultimate Test',
-    text: '<p>I define var a = 10, delete a, then ask the console to output a. What will it show?</p>',
+    text: '<p>I define var a = 10, I use \'delete\' on a, then ask the console to output a. What will it show?</p>',
     choices: [
       { label: '10', isCorrect: true },
       { label: 'undefined', isCorrect: false },
