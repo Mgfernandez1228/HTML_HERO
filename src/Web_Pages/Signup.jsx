@@ -5,7 +5,6 @@ import Navbar from '../NotUIReactComponents/Navbar';
 export default function Signup() {
   const navigate = useNavigate();
   
-  // 1. State to capture input values
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -14,13 +13,31 @@ export default function Signup() {
     fontFamily: '"gameboy", "Courier New", Courier, monospace'
   };
 
-  // 2. Integration Logic
+  // --- NEW VALIDATION LOGIC ---
+  const validateSignup = () => {
+    if (username.length < 3) {
+      setError('USERNAME TOO SHORT, USE AT LEAST 3 LETTERS');
+      return false;
+    }
+    if (username.includes(' ')) {
+      setError('NO SPACES ALLOWED IN USERNAME');
+      return false;
+    }
+    if (password.length < 6) {
+      setError('PASSWORD TOO SHORT, USE AT LEAST 6 LETTERS');
+      return false;
+    }
+    return true;
+  };
+
   const handleSignin = async (e) => {
-    e.preventDefault(); // Prevents page reload
+    e.preventDefault(); 
     setError('');
 
+    // 1. Run validation before calling the server
+    if (!validateSignup()) return;
+
     try {
-      // Points to your Express backend on port 5000
       const response = await fetch('/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -30,19 +47,13 @@ export default function Signup() {
       const data = await response.json();
 
       if (response.ok) {
-        // Store the session token and user info
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('username', data.username);
-        
-        // Success! Redirect to the Title screen
-        alert("Registered! Please Sign In.");
+        alert("HERO REGISTERED! PROCEED TO LOGIN.");
         navigate('/Login');
       } else {
-        // Display the specific error from your backend (e.g., "User not found")
-        setError(data.error || 'Authentication Failed');
+        setError(data.error || 'IDENTIFICATION FAILED');
       }
     } catch (err) {
-      setError('Could not connect to the auth server.');
+      setError('COULD NOT CONNECT TO AUTH SERVER.');
     }
   };
 
@@ -56,12 +67,13 @@ export default function Signup() {
             <h2 style={themeFont} className="text-3xl text-white drop-shadow-[0_0_1px_#00ffff] mb-2">
               SIGNUP <span className="text-cyan-400">AUTH</span>
             </h2>
-            <p style={themeFont} className={`text-[10px] tracking-widest uppercase ${error ? 'text-red-500' : 'text-cyan-500/60'}`}>
+            {/* Visual Feedback: Background changes when error exists */}
+            <p style={themeFont} className={`text-[10px] tracking-widest uppercase py-1 border transition-all ${error ? 'text-red-500 border-red-500 bg-red-500/10' : 'text-cyan-500/60 border-transparent'}`}>
               {error ? error : 'Identify yourself, Hero'}
             </p>
           </div>
 
-          <form className="space-y-6" onSubmit={handleSignin}>
+          <form className="space-y-6" onSubmit={handleSignin} noValidate={false}>
             <div>
               <label style={themeFont} className="block text-[12px] text-cyan-400 mb-2 uppercase ml-1">
                 Username
@@ -70,10 +82,11 @@ export default function Signup() {
                 type="text" 
                 required
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => setUsername(e.target.value.toUpperCase())}
                 placeholder="ENTER NAME..."
                 style={themeFont}
-                className="w-full bg-black border-b-2 border-gray-700 text-white p-3 outline-none focus:border-cyan-400 transition-colors placeholder:text-gray-600"
+                /* Border turns red if username validation fails */
+                className={`w-full bg-black border-b-2 p-3 outline-none transition-colors placeholder:text-gray-600 text-white ${error.includes('USERNAME') ? 'border-red-500' : 'border-gray-700 focus:border-cyan-400'}`}
               />
             </div>
 
@@ -85,10 +98,11 @@ export default function Signup() {
                 type="password" 
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value.toUpperCase())}
                 placeholder="********"
                 style={themeFont}
-                className="w-full bg-black border-b-2 border-gray-700 text-white p-3 outline-none focus:border-cyan-400 transition-colors placeholder:text-gray-600"
+                /* Border turns red if password validation fails */
+                className={`w-full bg-black border-b-2 p-3 outline-none transition-colors placeholder:text-gray-600 text-white ${error.includes('PASSWORD') ? 'border-red-500' : 'border-gray-700 focus:border-cyan-400'}`}
               />
             </div>
 
@@ -98,7 +112,7 @@ export default function Signup() {
                 style={themeFont}
                 className="w-full bg-cyan-500 hover:bg-white text-black font-bold py-4 rounded-sm transition-all border-b-4 border-cyan-700 active:border-b-0 active:translate-y-1 text-lg"
               >
-                SIGN IN
+                CREATE ACCOUNT
               </button>
               
               <button 
