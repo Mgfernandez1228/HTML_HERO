@@ -21,7 +21,7 @@ export default function Login({ setUser }) {
 
     try {
       // Points to your Express backend login route on port 3000
-      const response = await fetch('http://localhost:3000/api/login', {
+      const response = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -33,6 +33,7 @@ export default function Login({ setUser }) {
         // Store the JWT token and user info in the browser
         localStorage.setItem('token', data.token);
         localStorage.setItem('username', data.username);
+        localStorage.setItem('userID', data._id);
 
         // 2. Update App State (The check prevents the error)
         if (typeof setUser === 'function') {
@@ -74,7 +75,7 @@ export default function Login({ setUser }) {
                 type="text" 
                 required
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => setUsername(e.target.value.toUpperCase())}
                 placeholder="PLAYER_NAME"
                 style={themeFont}
                 className="w-full bg-black border-b-2 border-gray-700 text-white p-3 outline-none focus:border-indigo-400 transition-colors placeholder:text-gray-700"
@@ -89,7 +90,7 @@ export default function Login({ setUser }) {
                 type="password" 
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value.toUpperCase())}
                 placeholder="********"
                 style={themeFont}
                 className="w-full bg-black border-b-2 border-gray-700 text-white p-3 outline-none focus:border-indigo-400 transition-colors placeholder:text-gray-700"

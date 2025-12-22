@@ -18,6 +18,7 @@ export default function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
+    localStorage.removeItem('userID');
     setIsOpen(false);
     navigate('/');
     // Optional: window.location.reload() ensures all states are wiped
