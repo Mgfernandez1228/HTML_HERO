@@ -155,6 +155,18 @@ window.addEventListener('keydown', (e) => {
     }
     // Only allow Space to trigger the pending encounter while the text box is visible
     if((code === 'Space' || code === 'Spacebar' || code === ' ') && _pendingEncounterLevel){
+        // If pending is a navigateToScore marker, allow Space anywhere to navigate
+        try{
+            if(_pendingEncounterLevel && _pendingEncounterLevel.navigateToScore){
+                try{ localStorage.setItem("gameScore", currentScore); }catch(e){}
+                try{ const navEvent = new CustomEvent('TERMINAL_NAVIGATE', { detail: '/ScorePage' }); window.dispatchEvent(navEvent); }catch(e){}
+                try{ removeFinishOverlay(); }catch(e){}
+                try{ k.quit(); }catch(e){}
+                _pendingEncounterLevel = null;
+                window.__AWAITING_SCORE_NAV = false;
+                return;
+            }
+        }catch(e){}
         // require the text box to actually be visible before immediately triggering
         try{
             const textVisibleNow = store.get(isTextBoxVisibleAtom);
