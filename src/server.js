@@ -22,7 +22,7 @@ async function startServer() {
     });
 
     // Serve static assets (JS, CSS, images) from the 'dist' folder
-    app.use(express.static(path.join(__dirname, 'dist')));
+    app.use(express.static(path.join(__dirname, '..', 'dist')));
 
     app.get(/.*/, (req, res) => { // <-- Use the standard simple wildcard
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
