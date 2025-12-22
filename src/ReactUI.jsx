@@ -61,6 +61,15 @@ export default function ReactUI() {
             )}
             {encounter && typeof encounter === 'object' && encounter.level === 'level_one' && (
                 (() => {
+                    // support multi-encounter payloads ({ encounters: [{steps:[..]}], encounterIdx, questionIdx })
+                    if(Array.isArray(encounter.encounters)){
+                        const encIdx = typeof encounter.encounterIdx === 'number' ? encounter.encounterIdx : 0;
+                        const qIdx = typeof encounter.questionIdx === 'number' ? encounter.questionIdx : 0;
+                        const encPayload = encounter.encounters[encIdx] || { steps: [] };
+                        const stepIndex = (encPayload.steps && encPayload.steps[qIdx] != null) ? encPayload.steps[qIdx] : 0;
+                        const data = levelOneData[stepIndex] || levelOneData[0];
+                        return <EncounterDialog encounterMeta={encounter} title={data.title} text={data.text} choices={data.choices} onClose={closeEncounterAndRefocus} />
+                    }
                     const step = encounter.step || 0;
                     const data = levelOneData[step] || levelOneData[0];
                     return <EncounterDialog encounterMeta={encounter} title={data.title} text={data.text} choices={data.choices} onClose={closeEncounterAndRefocus} />
@@ -72,6 +81,14 @@ export default function ReactUI() {
             )}
             {encounter && typeof encounter === 'object' && encounter.level === 'level_two' && (
                 (() => {
+                    if(Array.isArray(encounter.encounters)){
+                        const encIdx = typeof encounter.encounterIdx === 'number' ? encounter.encounterIdx : 0;
+                        const qIdx = typeof encounter.questionIdx === 'number' ? encounter.questionIdx : 0;
+                        const encPayload = encounter.encounters[encIdx] || { steps: [] };
+                        const stepIndex = (encPayload.steps && encPayload.steps[qIdx] != null) ? encPayload.steps[qIdx] : 0;
+                        const data = levelTwoData[stepIndex] || levelTwoData[0];
+                        return <EncounterDialog encounterMeta={encounter} title={data.title} text={data.text} choices={data.choices} onClose={closeEncounterAndRefocus} />
+                    }
                     const step = typeof encounter.step === 'number' ? encounter.step : 0;
                     const data = levelTwoData[step] || levelTwoData[0];
                     return <EncounterDialog encounterMeta={encounter} title={data.title} text={data.text} choices={data.choices} onClose={closeEncounterAndRefocus} />
@@ -83,6 +100,14 @@ export default function ReactUI() {
             )}
             {encounter && typeof encounter === 'object' && encounter.level === 'level_three' && (
                 (() => {
+                    if(Array.isArray(encounter.encounters)){
+                        const encIdx = typeof encounter.encounterIdx === 'number' ? encounter.encounterIdx : 0;
+                        const qIdx = typeof encounter.questionIdx === 'number' ? encounter.questionIdx : 0;
+                        const encPayload = encounter.encounters[encIdx] || { steps: [] };
+                        const stepIndex = (encPayload.steps && encPayload.steps[qIdx] != null) ? encPayload.steps[qIdx] : 0;
+                        const data = levelThreeData[stepIndex] || levelThreeData[0];
+                        return <EncounterDialog encounterMeta={encounter} title={data.title} text={data.text} choices={data.choices} onClose={closeEncounterAndRefocus} />
+                    }
                     const step = typeof encounter.step === 'number' ? encounter.step : 0;
                     const data = levelThreeData[step] || levelThreeData[0];
                     return <EncounterDialog encounterMeta={encounter} title={data.title} text={data.text} choices={data.choices} onClose={closeEncounterAndRefocus} />

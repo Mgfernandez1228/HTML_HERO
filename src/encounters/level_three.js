@@ -29,6 +29,63 @@ export default [
       { label: 'True', isCorrect: false },
     ],
   },
+   {
+    title: 'Some JavaScript your way',
+    text: '<p>What is NaN?</p>',
+    choices: [
+      { label: 'It means \'Not a Number\'', isCorrect: true },
+      { label: 'Not a valid keyword in JavaScript', isCorrect: false },
+      { label: 'It means NULL', isCorrect: false }
+    ],
+  },
+  {
+    title: 'Even more JavaScript your way',
+    text: '<p>Is JavaScript related to the programming language \'Java\'?</p>',
+    choices: [
+      { label: 'Yes', isCorrect: false },
+      { label: 'No', isCorrect: true },
+      { label: 'We\'re all related in some way', isCorrect: false },
+    ],
+  },
+  {
+    title: 'The Ultimate Test',
+    text: '<p>Is \'null\' greater than or equal to zero in JavaScript?</p>',
+    choices: [
+      { label: 'You cannot compare them', isCorrect: false },
+      { label: 'No', isCorrect: false },
+      { label: 'Maybe', isCorrect: false },
+      { label: 'Yes', isCorrect: true }
+    ],
+  },
+   {
+    title: 'Some JavaScript your way',
+    text: '<p>How do I assign a value to a variable?</p>',
+    choices: [
+      { label: 'Use equal sign', isCorrect: true },
+      { label: 'Use curly braces', isCorrect: false },
+      { label: 'Use parenthesis', isCorrect: false },
+      { label: 'All of the above are valid', isCorrect: false },
+    ],
+  },
+  {
+    title: 'Even more JavaScript your way',
+    text: '<p>Is JavaScript a strongly typed language?</p>',
+    choices: [
+      { label: 'My fingers are too weak to type it strongly, anyway', isCorrect: false },
+      { label: 'Yes', isCorrect: false },
+      { label: 'No', isCorrect: true }
+    ],
+  },
+  {
+    title: 'The Ultimate Test',
+    text: '<p>How do I use a pointer in JavaScript?</p>',
+    choices: [
+      { label: 'Pointers do not exist in JavaScript', isCorrect: true },
+      { label: 'Use the asterisk next to a type', isCorrect: false },
+      { label: 'Curl all your fingers inward except your index finger', isCorrect: false },
+      { label: 'Use the ampersand symbol', isCorrect: false },
+    ],
+  },
 ];
 
 // Editable NPC lines for level three

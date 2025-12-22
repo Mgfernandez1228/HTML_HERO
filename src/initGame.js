@@ -75,7 +75,63 @@ function triggerPendingEncounterNow(){
         // close textbox and open encounter UI immediately
         try{ store.set(isTextBoxVisibleAtom, false); }catch(e){}
         try{ store.set(textBoxContentAtom, ""); }catch(e){}
-        try{ store.set(encounterAtom, _pendingEncounterLevel); }catch(e){}
+        try{
+            // If pending is a simple level string, pick a random encounter index from that level's array
+            let toSet = _pendingEncounterLevel;
+            try{
+                const makeRandom = (levelName) => {
+                    // select the appropriate source array
+                    let arr = null;
+                    if(levelName === 'level_one') arr = levelOneEncounters;
+                    else if(levelName === 'level_two') arr = levelTwoEncounters;
+                    else if(levelName === 'level_three') arr = levelThreeEncounters;
+                    if(!arr || !Array.isArray(arr) || arr.length === 0) return levelName;
+
+                    // number of encounters per level: 1,2,3
+                    const encountersCount = levelName === 'level_one' ? 1 : (levelName === 'level_two' ? 2 : 3);
+
+                    // helper: Fisher-Yates shuffle
+                    const shuffle = (xs) => {
+                        for(let i = xs.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            const tmp = xs[i]; xs[i] = xs[j]; xs[j] = tmp;
+                        }
+                        return xs;
+                    };
+
+                    // For current requirement: total number of questions across the level equals `encountersCount`.
+                    // Distribute one question per encounter until exhausted so level1=1, level2=2, level3=3.
+                    let totalNeeded = encountersCount;
+                    if(totalNeeded > arr.length) totalNeeded = arr.length;
+
+                    const pool = Array.from({length: arr.length}, (_,i)=>i);
+                    shuffle(pool);
+                    const chosen = pool.slice(0, totalNeeded);
+
+                    const encounters = [];
+                    // assign one chosen index to each encounter in order until exhausted
+                    let cursor = 0;
+                    for(let e=0;e<encountersCount;e++){
+                        const steps = [];
+                        if(cursor < chosen.length){
+                            steps.push(chosen[cursor]);
+                            cursor++;
+                        }
+                        encounters.push({ steps });
+                    }
+
+                    return { level: levelName, encounters, encounterIdx: 0, questionIdx: 0 };
+                };
+
+                if(typeof _pendingEncounterLevel === 'string'){
+                    toSet = makeRandom(_pendingEncounterLevel);
+                } else if(typeof _pendingEncounterLevel === 'object' && _pendingEncounterLevel.level && (!Array.isArray(_pendingEncounterLevel.encounters))){
+                    // if an object with level but no explicit encounters array, generate randomized encounters
+                    toSet = makeRandom(_pendingEncounterLevel.level);
+                }
+            }catch(e){ toSet = _pendingEncounterLevel; }
+            store.set(encounterAtom, toSet);
+        }catch(e){}
         // mark transitioning to debounce duplicate key presses
         try{ window.__TRANSITIONING = true; }catch(e){}
         setTimeout(() => { try{ window.__TRANSITIONING = false; }catch(e){} }, 220);
@@ -239,13 +295,14 @@ export default function initGame(){
             k.color(0, 0, 0),
             k.opacity(1),
             k.fixed(),
-            k.z(9999),
+            k.z(10000),
         ]);
 
         fadeIn.onUpdate(() => {
             fadeIn.opacity = Math.max(fadeIn.opacity - k.dt() / duration, 0);
             if (fadeIn.opacity <= 0) {
-                fadeIn.destroy();
+                try{ fadeIn.destroy(); }catch(e){}
+                try{ overlay.destroy(); }catch(e){}
             }
         });
     });
@@ -319,8 +376,79 @@ window.addEventListener("mousedown", () => {
             return;
         }
 
-        // handle multi-step encounters per level
+        // handle multi-question / multi-encounter flows
         try{
+            // If the meta contains an `encounters` array, treat it as the new multi-encounter payload.
+            if(meta && typeof meta === 'object' && Array.isArray(meta.encounters)){
+                const lvl = level; // string name
+                const encounters = meta.encounters || [];
+                const encounterIdx = (typeof meta.encounterIdx === 'number') ? meta.encounterIdx : (typeof meta.step === 'number' ? meta.step : 0);
+                const questionIdx = (typeof meta.questionIdx === 'number') ? meta.questionIdx : (typeof meta.question === 'number' ? meta.question : 0);
+
+                // safety checks
+                if(!encounters || encounters.length === 0){
+                    // fallback to single completion
+                    if(lvl === 'level_one'){ movedNpc1 = true; if(currentScene === lvl) fadeToScene('level_two'); return; }
+                    if(lvl === 'level_two'){ movedNpc2 = true; return; }
+                    if(lvl === 'level_three'){ defeatedNpc3 = true; try{ localStorage.setItem("gameScore", currentScore); }catch(e){}; return; }
+                }
+
+                const currentEncounter = encounters[encounterIdx] || { steps: [] };
+                const steps = currentEncounter.steps || [];
+
+                // determine next progression
+                const nextQuestionIdx = (questionIdx || 0) + 1;
+                // If there are more questions in this encounter, queue the next question
+                if(nextQuestionIdx < steps.length){
+                    try{ store.set(textBoxContentAtom, 'Correct! Next question...'); }catch(e){}
+                    try{ store.set(isTextBoxVisibleAtom, true); }catch(e){}
+                    // schedule the next question within the same encounter
+                    _pendingEncounterLevel = { level: lvl, encounters, encounterIdx: encounterIdx, questionIdx: nextQuestionIdx };
+                    try{ window.__AUTO_NEXT_ENCOUNTER = true; }catch(e){}
+                    setTimeout(() => { try{ if(window.__AUTO_NEXT_ENCOUNTER){ window.__AUTO_NEXT_ENCOUNTER = false; triggerPendingEncounterNow(); } }catch(e){} }, 160);
+                    return;
+                }
+
+                // finished questions for this encounter; move to the next encounter in the sequence
+                const nextEncounterIdx = encounterIdx + 1;
+                if(nextEncounterIdx < encounters.length){
+                    try{ store.set(textBoxContentAtom, 'Well done. Prepare for the next encounter.'); }catch(e){}
+                    try{ store.set(isTextBoxVisibleAtom, true); }catch(e){}
+                    _pendingEncounterLevel = { level: lvl, encounters, encounterIdx: nextEncounterIdx, questionIdx: 0 };
+                    try{ window.__AUTO_NEXT_ENCOUNTER = true; }catch(e){}
+                    setTimeout(() => { try{ if(window.__AUTO_NEXT_ENCOUNTER){ window.__AUTO_NEXT_ENCOUNTER = false; triggerPendingEncounterNow(); } }catch(e){} }, 160);
+                    return;
+                }
+
+                // completed all encounters for this level
+                if(lvl === 'level_one'){
+                    movedNpc1 = true;
+                    if(currentScene === lvl){ fadeToScene('level_two'); }
+                    return;
+                }
+                if(lvl === 'level_two'){
+                    movedNpc2 = true;
+                    return;
+                }
+                if(lvl === 'level_three'){
+                    defeatedNpc3 = true;
+                    try{ _pendingEncounterLevel = null; }catch(e){}
+                    if(_pendingEncounterTimeout){ clearTimeout(_pendingEncounterTimeout); _pendingEncounterTimeout = null; }
+                    try{ window.__AUTO_NEXT_ENCOUNTER = false; }catch(e){}
+                    try{
+                        if(window.__currentScene === 'level_three' && window.__currentNpc){ try{ window.__currentNpc.play('npc-down'); }catch(e){} }
+                    }catch(e){}
+                    try{
+                        // mark that we should navigate to ScorePage when player presses Space
+                        _pendingEncounterLevel = { navigateToScore: true };
+                        try{ ensureFinishOverlay(); }catch(e){}
+                        window.__AWAITING_SCORE_NAV = true;
+                    }catch(e){}
+                    return;
+                }
+            }
+
+            // Legacy / compatibility handling: preserve original step-based flow
             if(level === 'level_one'){
                 // level one has single encounter by default
                 movedNpc1 = true;
@@ -331,89 +459,28 @@ window.addEventListener("mousedown", () => {
             if(level === 'level_two'){
                 // two-step sequence: step 0 -> step 1 -> win level
                 if(step === 0){
-                    // first encounter won: show NPC dialog and queue second encounter
                     try{ store.set(textBoxContentAtom, 'You bested me once... but not yet! Prepare yourself!'); }catch(e){}
                     try{ store.set(isTextBoxVisibleAtom, true); }catch(err){}
-                    // set pending encounter to next step; allow immediate auto-transition
                     _pendingEncounterLevel = { level: 'level_two', step: 1 };
-                    // auto-trigger next encounter shortly after the current dialog closes
                     try{ window.__AUTO_NEXT_ENCOUNTER = true; }catch(e){}
-                    setTimeout(() => {
-                        try{
-                            if(window.__AUTO_NEXT_ENCOUNTER){
-                                window.__AUTO_NEXT_ENCOUNTER = false;
-                                triggerPendingEncounterNow();
-                            }
-                        }catch(e){}
-                    }, 160);
+                    setTimeout(() => { try{ if(window.__AUTO_NEXT_ENCOUNTER){ window.__AUTO_NEXT_ENCOUNTER = false; triggerPendingEncounterNow(); } }catch(e){} }, 160);
                     return;
                 }
-                if(step === 1){
-                    // finished both encounters
-                    movedNpc2 = true;
-                    return;
-                }
+                if(step === 1){ movedNpc2 = true; return; }
             }
 
             if(level === 'level_three'){
-                // three-step sequence: steps 0,1,2 => on finishing step N-1 queue next
-                if(step === 0){
-                    try{ store.set(textBoxContentAtom, 'Impressive... but you will need more than that.'); }catch(e){}
-                    try{ store.set(isTextBoxVisibleAtom, true); }catch(err){}
-                    _pendingEncounterLevel = { level: 'level_three', step: 1 };
-                    try{ window.__AUTO_NEXT_ENCOUNTER = true; }catch(e){}
-                    setTimeout(() => {
-                        try{
-                            if(window.__AUTO_NEXT_ENCOUNTER){
-                                window.__AUTO_NEXT_ENCOUNTER = false;
-                                triggerPendingEncounterNow();
-                            }
-                        }catch(e){}
-                    }, 160);
-                    return;
-                }
-                if(step === 1){
-                    try{ store.set(textBoxContentAtom, 'You are persistent. Final test!'); }catch(e){}
-                    try{ store.set(isTextBoxVisibleAtom, true); }catch(err){}
-                    _pendingEncounterLevel = { level: 'level_three', step: 2 };
-                    try{ window.__AUTO_NEXT_ENCOUNTER = true; }catch(e){}
-                    setTimeout(() => {
-                        try{
-                            if(window.__AUTO_NEXT_ENCOUNTER){
-                                window.__AUTO_NEXT_ENCOUNTER = false;
-                                triggerPendingEncounterNow();
-                            }
-                        }catch(e){}
-                    }, 160);
-                    return;
-                }
+                if(step === 0){ try{ store.set(textBoxContentAtom, 'Impressive... but you will need more than that.'); }catch(e){}; try{ store.set(isTextBoxVisibleAtom, true); }catch(err){}; _pendingEncounterLevel = { level: 'level_three', step: 1 }; try{ window.__AUTO_NEXT_ENCOUNTER = true; }catch(e){}; setTimeout(() => { try{ if(window.__AUTO_NEXT_ENCOUNTER){ window.__AUTO_NEXT_ENCOUNTER = false; triggerPendingEncounterNow(); } }catch(e){} }, 160); return; }
+                if(step === 1){ try{ store.set(textBoxContentAtom, 'You are persistent. Final test!'); }catch(e){}; try{ store.set(isTextBoxVisibleAtom, true); }catch(err){}; _pendingEncounterLevel = { level: 'level_three', step: 2 }; try{ window.__AUTO_NEXT_ENCOUNTER = true; }catch(e){}; setTimeout(() => { try{ if(window.__AUTO_NEXT_ENCOUNTER){ window.__AUTO_NEXT_ENCOUNTER = false; triggerPendingEncounterNow(); } }catch(e){} }, 160); return; }
                 if(step === 2){
-                    // completed all three
                     defeatedNpc3 = true;
-                    // clear any queued or scheduled encounters and auto-next flags
                     try{ _pendingEncounterLevel = null; }catch(e){}
                     if(_pendingEncounterTimeout){ clearTimeout(_pendingEncounterTimeout); _pendingEncounterTimeout = null; }
                     try{ window.__AUTO_NEXT_ENCOUNTER = false; }catch(e){}
-                    // If the level-three scene is active, ensure the NPC switches to a passive animation
-                    try{
-                        if(window.__currentScene === 'level_three' && window.__currentNpc){
-                            try{ window.__currentNpc.play('npc-down'); }catch(e){}
-                        }
-                    }catch(e){}
-                    try{ console.log('[initGame] defeatedNpc3 set true');
-                        
-                        // Create and dispatch the event
-                        const navEvent = new CustomEvent('TERMINAL_NAVIGATE', { 
-                            detail: '/ScorePage' // The path you want to go to
-                        });
-
-                        
-                    // 'gameScore' is the key name, currentScore is your variable
-                    localStorage.setItem("gameScore", currentScore);                        
-                        window.dispatchEvent(navEvent);
-                        k.quit();
-
-                    }catch(e){}
+                    try{ if(window.__currentScene === 'level_three' && window.__currentNpc){ try{ window.__currentNpc.play('npc-down'); }catch(e){} } }catch(e){}
+                    try{ console.log('[initGame] defeatedNpc3 set true'); const navEvent = new CustomEvent('TERMINAL_NAVIGATE', { detail: '/ScorePage' }); localStorage.setItem("gameScore", currentScore); window.dispatchEvent(navEvent); }catch(e){}
+                    try{ removeFinishOverlay(); }catch(e){}
+                    try{ k.quit(); }catch(e){}
                     return;
                 }
             }
@@ -533,6 +600,24 @@ window.addEventListener("mousedown", () => {
                 k.anchor("center"),
                 k.scale(8),
                 k.pos(1094, 422),
+        ]);
+
+        // player placement for level_three
+        let player_position = [200, 460];
+        if (retTo2) player_position = [1700, 440];
+
+        const player = k.add([
+            k.sprite("characters", {anim: "down-idle"}),
+            k.area(),
+            k.body(),
+            k.anchor("center"),
+            k.scale(8),
+            k.pos(player_position),
+            "player",
+            {
+                speed: 800,
+                direction: k.vec2(0,0),
+            },
         ]);
 
         //collison logic for walls going from left to right
@@ -678,22 +763,6 @@ window.addEventListener("mousedown", () => {
             isCollidingNpc = false;
 
         })
-
-        const player = k.add([
-            k.sprite("characters", {anim: "down-idle"}),
-            k.area(),
-            k.body(),
-            k.anchor("center"),
-            k.scale(8),
-            k.pos(144, 424),
-            "player",
-            {
-                speed: 800,
-                direction: k.vec2(0,0),
-                
-            },//tag for collisons, string to array of components
-
-        ]);
         try{ window.__currentPlayer = player; window.__currentNpc = npc; }catch(e){}
         try{ window.__currentPlayer = player; window.__currentNpc = npc; }catch(e){}
         try{ window.__currentPlayer = player; window.__currentNpc = npc; }catch(e){}
@@ -719,6 +788,19 @@ window.addEventListener("mousedown", () => {
 
             const isActTriggered = spaceKeyPressed || mobileJustPressed;
 
+            // If awaiting score navigation, allow Space (or mobile button) to immediately navigate.
+            try{
+                if(isActTriggered && _pendingEncounterLevel && _pendingEncounterLevel.navigateToScore){
+                    try{ localStorage.setItem("gameScore", currentScore); }catch(e){}
+                    try{ const navEvent = new CustomEvent('TERMINAL_NAVIGATE', { detail: '/ScorePage' }); window.dispatchEvent(navEvent); }catch(e){}
+                    try{ removeFinishOverlay(); }catch(e){}
+                    try{ k.quit(); }catch(e){}
+                    _pendingEncounterLevel = null;
+                    window.__AWAITING_SCORE_NAV = false;
+                    return;
+                }
+            }catch(e){}
+
             // If player presses Space while a text box is visible and a pending encounter exists,
             // trigger it immediately. This fixes cases where browser keydown timing misses the pending flag.
             try{
@@ -730,6 +812,18 @@ window.addEventListener("mousedown", () => {
                     // require that the player has released space since opening the textbox
                     if(textVisibleNow && _pendingEncounterLevel && !justOpened && spaceReleased){
                         try{ console.log('[initGame] triggerPendingEncounter from onUpdate. pending:', _pendingEncounterLevel); }catch(e){}
+                        // if pending navigation to score, handle here (we have access to `k`)
+                        try{
+                            if(_pendingEncounterLevel && _pendingEncounterLevel.navigateToScore){
+                                try{ localStorage.setItem("gameScore", currentScore); }catch(e){}
+                                try{ const navEvent = new CustomEvent('TERMINAL_NAVIGATE', { detail: '/ScorePage' }); window.dispatchEvent(navEvent); }catch(e){}
+                                try{ removeFinishOverlay(); }catch(e){}
+                                try{ k.quit(); }catch(e){}
+                                _pendingEncounterLevel = null;
+                                window.__AWAITING_SCORE_NAV = false;
+                                return;
+                            }
+                        }catch(e){}
                         triggerPendingEncounterNow();
                         return;
                     }
@@ -744,6 +838,17 @@ window.addEventListener("mousedown", () => {
                     const textVisibleNow = store.get(isTextBoxVisibleAtom);
                     if(textVisibleNow && _pendingEncounterLevel){
                         try{ console.log('[initGame] triggerPendingEncounter from onUpdate. pending:', _pendingEncounterLevel); }catch(e){}
+                        try{
+                            if(_pendingEncounterLevel && _pendingEncounterLevel.navigateToScore){
+                                try{ localStorage.setItem("gameScore", currentScore); }catch(e){}
+                                try{ const navEvent = new CustomEvent('TERMINAL_NAVIGATE', { detail: '/ScorePage' }); window.dispatchEvent(navEvent); }catch(e){}
+                                try{ removeFinishOverlay(); }catch(e){}
+                                try{ k.quit(); }catch(e){}
+                                _pendingEncounterLevel = null;
+                                window.__AWAITING_SCORE_NAV = false;
+                                return;
+                            }
+                        }catch(e){}
                         triggerPendingEncounterNow();
                         return;
                     }
@@ -1646,10 +1751,7 @@ window.addEventListener("mousedown", () => {
         };
     }catch(e){}
 
-
-
-}
-
+    // Helper: returns true when the player is adjacent to the npc (within pixel threshold)
     // Helper: returns true when the player is adjacent to the npc (within pixel threshold)
     // default increased to 140 so interaction range is generous but not too large
     function playerNearNpc(playerObj, npcObj, maxDistance = 140){
@@ -1724,3 +1826,47 @@ window.addEventListener("mousedown", () => {
         }
         return el;
     }
+
+    // Create a full-screen overlay shown when the player finishes the game
+    function ensureFinishOverlay() {
+        let ov = document.getElementById('game-finished-overlay');
+        if (!ov) {
+            ov = document.createElement('div');
+            ov.id = 'game-finished-overlay';
+            Object.assign(ov.style, {
+                position: 'fixed',
+                inset: '0',
+                zIndex: 1000001,
+                display: 'flex',
+                alignItems: 'flex-end',
+                justifyContent: 'center',
+                pointerEvents: 'none',
+            });
+            const msg = document.createElement('div');
+            msg.id = 'game-finished-overlay-msg';
+            msg.textContent = 'You Finished The Game! Press space to see your score';
+            Object.assign(msg.style, {
+                marginBottom: '48px',
+                background: 'rgba(0,0,0,0.75)',
+                color: 'white',
+                padding: '12px 18px',
+                borderRadius: '8px',
+                fontFamily: '"gameboy", monospace',
+                fontSize: '18px',
+                textTransform: 'uppercase',
+                border: '2px solid rgba(255,255,255,0.95)',
+                pointerEvents: 'none',
+            });
+            ov.appendChild(msg);
+            document.body.appendChild(ov);
+        }
+        return ov;
+    }
+
+    function removeFinishOverlay(){
+        try{
+            const ov = document.getElementById('game-finished-overlay');
+            if(ov && ov.parentNode) ov.parentNode.removeChild(ov);
+        }catch(e){}
+    }
+}
