@@ -1,18 +1,18 @@
 export default [
   {
-    title: 'Level One Encounter',
-    text: '<p>A mysterious sage blocks your path. Choose your action:</p>',
+    title: 'HTML Tags',
+    text: '<p>What tags do I use for a really big header?</p>',
     choices: [
-      { label: 'Approach the glowing altar', isCorrect: false },
-      { label: 'Inspect the carved runes', isCorrect: true },
-      { label: 'Run back to town', isCorrect: false },
-      { label: 'Shout for help', isCorrect: false },
+      { label: 'h2', isCorrect: false },
+      { label: 'h1', isCorrect: true },
+      { label: 'h3', isCorrect: false },
+      { label: 'p', isCorrect: false },
     ],
   },
 ];
 
 // Editable NPC lines for level one
-export const npcIntro = "Get Ready! if you can't do this you will never beat the CSS wizard and King JavaScript, HTML HERO!";
+export const npcIntro = "Greetings, traveler. To proceed to the CSS Wizard, you must answer my riddle correctly.";
 export const passiveDialog = {
   down: "Beautiful day, isn't it?",
   up: "Horrible day, isn't it?",
