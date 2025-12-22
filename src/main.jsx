@@ -18,9 +18,12 @@ createRoot(websiteRoot).render(
   </StrictMode>
 );
 
+let activeRoot = null;
+
 //Game Root
 export function startGame(){
   console.log('[main] startGame called');
+  
   initGame();
 
 
@@ -34,11 +37,6 @@ export function startGame(){
   ui.style.display = "block";          // show game UI
   gameCanvas.style.display = "block";
 
-
-  // ui.style.visibility = "visible";
-  // ui.style.pointerEvents = "auto";
-
-  // gameCanvas.style.display = "block";  // show game canvas
 
   body.style.overflow = "hidden";//hides the whole website when in the game.
 
@@ -54,19 +52,18 @@ export function startGame(){
   }).observe(ui.parentElement);
 
 
-  createRoot(ui).render(
+  activeRoot = createRoot(ui);
+
+  activeRoot.render(
     <StrictMode>
       <Provider store ={store}>
         <ReactUI />
       </Provider>
     </StrictMode>,
   );
-
- 
-
-  
-
   
 }
+
+
 
 

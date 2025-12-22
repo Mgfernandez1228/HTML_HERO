@@ -145,10 +145,10 @@ window.addEventListener('keydown', (e) => {
             if(sceneName === 'level_three' && defeatedNpc3){
                 try{
                     const facing = getPlayerFacing(player);
-                    if(facing.eq(k.vec2(0,-1))){ store.set(textBoxContentAtom, levelThreePassive.down); window.__currentNpc.play('npc-down'); }
-                    else if(facing.eq(k.vec2(0,1))){ store.set(textBoxContentAtom, levelThreePassive.up); window.__currentNpc.play('npc-up'); }
-                    else if(facing.eq(k.vec2(1,0))){ store.set(textBoxContentAtom, levelThreePassive.right); window.__currentNpc.play('npc-left'); }
-                    else if(facing.eq(k.vec2(-1,0))){ store.set(textBoxContentAtom, levelThreePassive.left); window.__currentNpc.play('npc-right'); }
+                    if(facing.eq(k.vec2(0,-1))){ store.set(textBoxContentAtom, levelThreePassive.down); window.__currentNpc.play('npc3-down-idle'); }
+                    else if(facing.eq(k.vec2(0,1))){ store.set(textBoxContentAtom, levelThreePassive.up); window.__currentNpc.play('npc3-up-idle'); }
+                    else if(facing.eq(k.vec2(1,0))){ store.set(textBoxContentAtom, levelThreePassive.right); window.__currentNpc.play('npc3-left-idle'); }
+                    else if(facing.eq(k.vec2(-1,0))){ store.set(textBoxContentAtom, levelThreePassive.left); window.__currentNpc.play('npc3-right-idle'); }
                     store.set(isTextBoxVisibleAtom, true);
                 }catch(e){}
                 return;
@@ -388,7 +388,19 @@ window.addEventListener("mousedown", () => {
                             try{ window.__currentNpc.play('npc-down'); }catch(e){}
                         }
                     }catch(e){}
-                    try{ console.log('[initGame] defeatedNpc3 set true'); }catch(e){}
+                    try{ console.log('[initGame] defeatedNpc3 set true');
+                        
+                        // Create and dispatch the event
+                        const navEvent = new CustomEvent('TERMINAL_NAVIGATE', { 
+                            detail: '/Leaderboard' // The path you want to go to
+                        });
+
+                        
+
+                        window.dispatchEvent(navEvent);
+                        k.quit();
+
+                    }catch(e){}
                     return;
                 }
             }
@@ -1493,11 +1505,13 @@ window.addEventListener("mousedown", () => {
                 if(facing.eq(k.vec2(0,-1))){
                     store.set(textBoxContentAtom, levelOneIntro);
                     npc.play("npc1-down-idle");
+
                 }
 
                 if(facing.eq(k.vec2(0,1))){
                     store.set(textBoxContentAtom, levelOnePassive.up);
                     npc.play("npc1-up-idle");
+                    
                 }
 
                 if(facing.eq(k.vec2(1,0))){
