@@ -15,6 +15,10 @@ let currentScore = 999999;
 const MAX_SCORE = 999999;
 const decayRate = 1000;
 
+// centralized overlay position for the in-game boxed score
+const SCORE_OVERLAY_TOP = '90px';
+const SCORE_OVERLAY_RIGHT = '50px';
+
 // space release tracking: true when space has been released since last press
 try{ window.__SPACE_WAS_RELEASED = true; }catch(e){}
 
@@ -443,6 +447,14 @@ window.addEventListener("mousedown", () => {
     k.loadSprite("background3", "./background3.png");
     k.loadSprite("background2", "./background2.png");
     k.loadSprite("background1", "./background1.png");
+    // load the retro Gameboy TTF for kaboom text rendering
+    try{
+        if (typeof k.loadFont === 'function') {
+            k.loadFont("gameboy", "/gameboy.ttf");
+        }
+    }catch(e){
+        // ignore if loadFont not available
+    }
         k.loadSprite("characters", "characters3.png", {
             sliceY:2,
             sliceX:8,
@@ -936,14 +948,18 @@ window.addEventListener("mousedown", () => {
         })
 
             const scoreLabel = k.add([
-                k.text(`SCORE: ${currentScore}`),
-                k.color("A62910"),
-                k.pos(1610, 104),
-                k.fixed(),
-            ]);
+                    k.text(`SCORE: ${currentScore}`, { font: "gameboy", size: 26 }),
+                    k.color("FF0004"),
+                    // right-align the text and place it under the React hearts
+                    k.pos(1890, 140),
+                    k.anchor("right"),
+                    k.opacity(0),
+                    k.fixed(),
+                ]);
 
             scoreLabel.onUpdate(() => {
                 scoreLabel.text = `SCORE: ${currentScore.toString().padStart(6, '0')}`;
+                try { const el = ensureScoreOverlay(); if(el) el.textContent = `SCORE: ${currentScore.toString().padStart(6,'0')}`; } catch(e){}
             });
 
     });
@@ -1117,14 +1133,17 @@ window.addEventListener("mousedown", () => {
         ]);
         
         const scoreLabel = k.add([
-            k.text(`SCORE: ${currentScore}`),
-            k.color("A62910"),
-            k.pos(1610, 104),
+            k.text(`SCORE: ${currentScore}`, { font: "gameboy", size: 26 }),
+            k.color("FF0004"),
+            k.pos(1890, 140),
+            k.anchor("right"),
+            k.opacity(0),
             k.fixed(),
         ]);
 
         scoreLabel.onUpdate(() => {
             scoreLabel.text = `SCORE: ${currentScore.toString().padStart(6, '0')}`;
+            try { const el = ensureScoreOverlay(); if(el) el.textContent = `SCORE: ${currentScore.toString().padStart(6,'0')}`; } catch(e){}
         });            
         //global update loop
         player.onUpdate(() => {
@@ -1485,14 +1504,17 @@ window.addEventListener("mousedown", () => {
         ]);
 
     const scoreLabel = k.add([
-        k.text(`SCORE: ${currentScore}`),
-        k.color("A62910"),
-        k.pos(1610, 104),
+        k.text(`SCORE: ${currentScore}`, { font: "gameboy", size: 26 }),
+        k.color("FF0004"),
+        k.pos(1890, 140),
+        k.opacity(0),
+        k.anchor("right"),
         k.fixed(),
     ]);
 
     scoreLabel.onUpdate(() => {
         scoreLabel.text = `SCORE: ${currentScore.toString().padStart(6, '0')}`;
+        try { const el = ensureScoreOverlay(); if(el) el.textContent = `SCORE: ${currentScore.toString().padStart(6,'0')}`; } catch(e){}
     });
 
         //global update loop
@@ -1670,4 +1692,35 @@ window.addEventListener("mousedown", () => {
             document.body.appendChild(hint);
         }
         return hint;
+    }
+
+    // Create or return the in-game DOM score overlay (fixed top-right)
+    function ensureScoreOverlay() {
+        let el = document.getElementById('in-game-score');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'in-game-score';
+            Object.assign(el.style, {
+                position: 'fixed',
+                top: SCORE_OVERLAY_TOP,
+                right: SCORE_OVERLAY_RIGHT,
+                zIndex: 999999,
+                background: 'rgba(0,0,0,0.6)',
+                color: '#FF0004',
+                border: '2px solid rgba(255,255,255,1)',
+                borderRadius: '8px',
+                padding: '6px 12px',
+                fontFamily: '"gameboy", monospace',
+                fontSize: '20px',
+                textTransform: 'uppercase',
+                pointerEvents: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: '1',
+            });
+            el.textContent = `SCORE: ${currentScore.toString().padStart(6,'0')}`;
+            document.body.appendChild(el);
+        }
+        return el;
     }

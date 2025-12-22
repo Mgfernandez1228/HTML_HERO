@@ -21,12 +21,11 @@ export default function Home() {
             THE WEB IS IN <span className="text-cyan-500">TROUBLE.</span> <br />
             A HERO IS NEEDED.
           </h1>
-          <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto font-light leading-relaxed">
+          <p style={pixelFont} className="text-gray-400 text-base md:text-lg max-w-2xl mx-auto font-light leading-relaxed">
             HTML HERO is a educational resource designed to teach basic html, css, and javascript through a retro style rpg.
           </p>
           
-          <div className="pt-8">
-            
+          <div className="pt-3">
               <button 
                 onClick={() => navigate('/Title')}
                 style={pixelFont}
@@ -34,8 +33,6 @@ export default function Home() {
               >
                 PLAY GAME
               </button>
-            
-              
           </div>
         </div>
       </section>

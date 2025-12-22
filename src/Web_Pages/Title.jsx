@@ -31,8 +31,8 @@ return (
 <>
   <Navbar />
   <div className="relative flex flex-col items-center justify-center min-h-screen w-full bg-black animate-gradient text-white px-4 sm:px-8">
-    <div className="relative z-10 flex flex-col items-center gap-10 sm:gap-16 lg:gap-20">
-      <h1 style={{fontFamily: '"gameboy", "Courier New", Courier, monospace'}} className="font-extrabold text-4xl sm:text-6xl md:text-7xl lg:text-9xl text-white 
+    <div className="relative z-10 flex flex-col items-center gap-8 sm:gap-12 lg:gap-16">
+      <h1 style={{fontFamily: '"gameboy", "Courier New", Courier, monospace'}} className="font-extrabold text-4xl sm:text-6xl md:text-7xl lg:text-8xl text-white 
                       drop-shadow-[0_0_5px_#00ffff] 
                       [text-shadow:3px_5px_0px_#1a1a1a,6px_8px_15px_rgba(0,0,0,0.7)] 
                       breathe text-center">
