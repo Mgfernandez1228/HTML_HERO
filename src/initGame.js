@@ -1,5 +1,5 @@
 import initKaplay from "./kaplayCtx";
-import { isTextBoxVisibleAtom, store, textBoxContentAtom, encounterAtom, heartsAtom, joystickAtom} from "./store";
+import { isTextBoxVisibleAtom, store, textBoxContentAtom, encounterAtom, heartsAtom, joystickAtom, mobileButtonAtom} from "./store";
 import levelOneEncounters, { npcIntro as levelOneIntro, passiveDialog as levelOnePassive } from "./encounters/level_one";
 import levelTwoEncounters, { npcIntro as levelTwoIntro, passiveDialog as levelTwoPassive } from "./encounters/level_two";
 import levelThreeEncounters, { npcIntro as levelThreeIntro, passiveDialog as levelThreePassive } from "./encounters/level_three";
@@ -422,7 +422,7 @@ window.addEventListener("mousedown", () => {
     k.loadSprite("background3", "./background3.png");
     k.loadSprite("background2", "./background2.png");
     k.loadSprite("background1", "./background1.png");
-        k.loadSprite("characters", "characters.png", {
+        k.loadSprite("characters", "characters3.png", {
             sliceY:2,
             sliceX:8,
             anims: {
@@ -641,10 +641,25 @@ window.addEventListener("mousedown", () => {
             player.direction.x = 0;
             player.direction.y = 0;
 
+            const spaceKeyDown = k.isKeyDown("space") || store.get(mobileButtonAtom);
+            const spaceKeyPressed = k.isKeyPressed("space");
+
+            // 2. Create a custom "Mobile Pressed" flag to mimic k.isKeyPressed
+            // This prevents the button from "stuttering" through multiple dialogue steps
+            let mobileJustPressed = false;
+            if (store.get(mobileButtonAtom) && !window.__MOBILE_BUTTON_HELD) {
+                mobileJustPressed = true;
+                window.__MOBILE_BUTTON_HELD = true;
+            } else if (!store.get(mobileButtonAtom)) {
+                window.__MOBILE_BUTTON_HELD = false;
+            }
+
+            const isActTriggered = spaceKeyPressed || mobileJustPressed;
+
             // If player presses Space while a text box is visible and a pending encounter exists,
             // trigger it immediately. This fixes cases where browser keydown timing misses the pending flag.
             try{
-                    if(k.isKeyPressed("space")){
+                    if(isActTriggered){
                     const textVisibleNow = store.get(isTextBoxVisibleAtom);
                     // avoid triggering immediately if the textbox was just opened by this same keypress
                     const justOpened = !!(window.__TEXTBOX_JUST_OPENED);
@@ -662,7 +677,7 @@ window.addEventListener("mousedown", () => {
             // If player presses Space while a text box is visible and a pending encounter exists,
             // trigger it immediately. This fixes cases where browser keydown timing misses the pending flag.
             try{
-                if(k.isKeyPressed("space")){
+                if(isActTriggered){
                     const textVisibleNow = store.get(isTextBoxVisibleAtom);
                     if(textVisibleNow && _pendingEncounterLevel){
                         try{ console.log('[initGame] triggerPendingEncounter from onUpdate. pending:', _pendingEncounterLevel); }catch(e){}
@@ -778,6 +793,9 @@ window.addEventListener("mousedown", () => {
                 if(k.isKeyDown("down")) player.direction.y = 1;
             }
 
+            const mobileButton = store.get(mobileButtonAtom);
+
+
 
             //smooth animations to keep nice cycle
             // For animations, we need to check dominant direction
@@ -823,7 +841,7 @@ window.addEventListener("mousedown", () => {
             }
 
             //check when colliding from npx or adjacent and pressing space
-            if((isCollidingNpc || playerNearNpc(player, npc)) && k.isKeyPressed("space")){
+            if((isCollidingNpc || playerNearNpc(player, npc)) && (isActTriggered)){
                 // if an encounter UI is active, ignore this input to avoid overlapping dialogue
                 try{
                     const activeEncounter = store.get(encounterAtom);
@@ -1037,10 +1055,26 @@ window.addEventListener("mousedown", () => {
             player.direction.x = 0;
             player.direction.y = 0;
 
+            // 1. Check the inputs
+            const spaceKeyDown = k.isKeyDown("space") || store.get(mobileButtonAtom);
+            const spaceKeyPressed = k.isKeyPressed("space");
+
+            // 2. Create a custom "Mobile Pressed" flag to mimic k.isKeyPressed
+            // This prevents the button from "stuttering" through multiple dialogue steps
+            let mobileJustPressed = false;
+            if (store.get(mobileButtonAtom) && !window.__MOBILE_BUTTON_HELD) {
+                mobileJustPressed = true;
+                window.__MOBILE_BUTTON_HELD = true;
+            } else if (!store.get(mobileButtonAtom)) {
+                window.__MOBILE_BUTTON_HELD = false;
+            }
+
+            const isActTriggered = spaceKeyPressed || mobileJustPressed;
+
             // If player presses Space while a text box is visible and a pending encounter exists,
             // trigger it immediately. This fixes cases where browser keydown timing misses the pending flag.
             try{
-                if(k.isKeyPressed("space")){
+                if(isActTriggered){
                     const textVisibleNow = store.get(isTextBoxVisibleAtom);
                     if(textVisibleNow && _pendingEncounterLevel){
                         try{ console.log('[initGame] triggerPendingEncounter from onUpdate. pending:', _pendingEncounterLevel); }catch(e){}
@@ -1129,7 +1163,7 @@ window.addEventListener("mousedown", () => {
             }catch(e){}
 
             //check when colliding from npx or adjacent and pressing space
-            if((isCollidingNpc || playerNearNpc(player, npc)) && k.isKeyPressed("space")){
+            if((isCollidingNpc || playerNearNpc(player, npc)) && (isActTriggered)){
                 // if an encounter UI is active, ignore this input to avoid overlapping dialogue
                 try{
                     const activeEncounter = store.get(encounterAtom);
@@ -1429,7 +1463,7 @@ window.addEventListener("mousedown", () => {
             }
 
             //check when colliding from npx or adjacent and pressing space
-            if((isCollidingNpc || playerNearNpc(player, npc)) && k.isKeyPressed("space")){
+            if((isCollidingNpc || playerNearNpc(player, npc)) && (k.isKeyPressed("space") || store.get(mobileButtonAtom))){
                 // if an encounter UI is active, ignore this input to avoid overlapping dialogue
                 try{
                     const activeEncounter = store.get(encounterAtom);

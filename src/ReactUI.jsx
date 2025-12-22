@@ -9,7 +9,9 @@ import GameOver from "./ReactComponents/GameOver.jsx";
 import { useCallback } from 'react';
 import Hearts from "./ReactComponents/Hearts.jsx";
 import Joystick from "./ReactComponents/Joystick.jsx";
+import ActionButton from "./ReactComponents/ActionButton.jsx";
 import RotateDevice from "./ReactComponents/RotateDevice.jsx";
+
 
 export default function ReactUI() {
     const [encounter, setEncounter] = useAtom(encounterAtom);
@@ -52,6 +54,7 @@ export default function ReactUI() {
             <Hearts/>
             <TextBox />
             <Joystick />
+            <ActionButton />
             {/* New: encounter can be a string (legacy) or an object { level, step } */}
             {encounter && typeof encounter === 'string' && encounter === 'level_one' && (
                 <EncounterDialog encounterMeta={{ level: 'level_one', step: 0 }} title={levelOneData[0].title} text={levelOneData[0].text} choices={levelOneData[0].choices} onClose={closeEncounterAndRefocus} />
