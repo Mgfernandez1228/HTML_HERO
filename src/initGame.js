@@ -9,6 +9,12 @@ let _pendingEncounterTimeout = null;
 let _pendingEncounterLevel = null;
 // track whether the level_three boss has been defeated (module-scope so all handlers can read it)
 let defeatedNpc3 = false;
+
+//score calculation
+let currentScore = 999999;
+const MAX_SCORE = 999999;
+const decayRate = 1000;
+
 // space release tracking: true when space has been released since last press
 try{ window.__SPACE_WAS_RELEASED = true; }catch(e){}
 
@@ -198,10 +204,11 @@ window.addEventListener('keydown', (e) => {
     }catch(e){}
 });
 
+
 export default function initGame(){
-
-    const k = initKaplay();
-
+    
+    const k = initKaplay();    
+    
     function fadeToScene(sceneName, duration = 0.5) {
     const overlay = k.add([
         k.rect(k.width(), k.height()),
@@ -302,6 +309,7 @@ window.addEventListener("mousedown", () => {
             try {
                 const currentHearts = store.get(heartsAtom);
                 store.set(heartsAtom, Math.max(0, currentHearts - 1));
+                currentScore -= 100000;
             } catch (e) {}
 
             return;
@@ -392,11 +400,12 @@ window.addEventListener("mousedown", () => {
                         
                         // Create and dispatch the event
                         const navEvent = new CustomEvent('TERMINAL_NAVIGATE', { 
-                            detail: '/Leaderboard' // The path you want to go to
+                            detail: '/ScorePage' // The path you want to go to
                         });
 
                         
-
+                    // 'gameScore' is the key name, currentScore is your variable
+                    localStorage.setItem("gameScore", currentScore);                        
                         window.dispatchEvent(navEvent);
                         k.quit();
 
@@ -492,6 +501,14 @@ window.addEventListener("mousedown", () => {
 
 
     k.scene("level_three", () => {
+
+        k.loop(1, () => {
+            if (currentScore > 0) {
+                currentScore -= decayRate;
+                if (currentScore < 0) currentScore = 0;
+            }
+        });
+
         const DIAGONAL_FACTOR = 1/Math.sqrt(2);
         let isCollidingNpc = false;
 
@@ -918,9 +935,29 @@ window.addEventListener("mousedown", () => {
 
         })
 
+            const scoreLabel = k.add([
+                k.text(`SCORE: ${currentScore}`),
+                k.color("A62910"),
+                k.pos(1610, 104),
+                k.fixed(),
+            ]);
+
+            scoreLabel.onUpdate(() => {
+                scoreLabel.text = `SCORE: ${currentScore.toString().padStart(6, '0')}`;
+            });
+
     });
 
     k.scene("level_two", () => {
+
+        k.loop(1, () => {
+            if (currentScore > 0) {
+                currentScore -= decayRate;
+                if (currentScore < 0) currentScore = 0;
+            }
+        });
+
+
         const DIAGONAL_FACTOR = 1/Math.sqrt(2);
         let isCollidingNpc = false;
 
@@ -1078,7 +1115,17 @@ window.addEventListener("mousedown", () => {
             },//tag for collisons, string to array of components
 
         ]);
+        
+        const scoreLabel = k.add([
+            k.text(`SCORE: ${currentScore}`),
+            k.color("A62910"),
+            k.pos(1610, 104),
+            k.fixed(),
+        ]);
 
+        scoreLabel.onUpdate(() => {
+            scoreLabel.text = `SCORE: ${currentScore.toString().padStart(6, '0')}`;
+        });            
         //global update loop
         player.onUpdate(() => {
 
@@ -1125,6 +1172,7 @@ window.addEventListener("mousedown", () => {
                     return;
                 }
             }catch(e){}
+
           
             //player input to move - check joystick first, then keyboard
             const joystick = store.get(joystickAtom);
@@ -1246,6 +1294,14 @@ window.addEventListener("mousedown", () => {
 
 
     k.scene("level_one", () => {
+
+        k.loop(1, () => {
+            if (currentScore > 0) {
+                currentScore -= decayRate;
+                if (currentScore < 0) currentScore = 0;
+            }
+        });
+
         const DIAGONAL_FACTOR = 1/Math.sqrt(2);
         let isCollidingNpc = false;
 
@@ -1428,6 +1484,17 @@ window.addEventListener("mousedown", () => {
 
         ]);
 
+    const scoreLabel = k.add([
+        k.text(`SCORE: ${currentScore}`),
+        k.color("A62910"),
+        k.pos(1610, 104),
+        k.fixed(),
+    ]);
+
+    scoreLabel.onUpdate(() => {
+        scoreLabel.text = `SCORE: ${currentScore.toString().padStart(6, '0')}`;
+    });
+
         //global update loop
         player.onUpdate(() => {
 
@@ -1556,6 +1623,8 @@ window.addEventListener("mousedown", () => {
             setTextBoxVisible: (v) => { try{ store.set(isTextBoxVisibleAtom, v); }catch(e){} },
         };
     }catch(e){}
+
+
 
 }
 

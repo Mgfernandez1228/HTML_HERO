@@ -16,6 +16,7 @@ export default function Home(){
       document.getElementById('ui').style.display = 'none';
       document.getElementById('website-root').style.display = 'block';
       
+      
       // 2. Actually move the page
 
       navigate(event.detail); 
