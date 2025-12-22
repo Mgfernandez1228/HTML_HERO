@@ -1,3 +1,5 @@
+const path = require('path');
+
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -25,7 +27,7 @@ async function startServer() {
     app.use(express.static(path.join(__dirname, '..', 'dist')));
 
     app.get(/.*/, (req, res) => { // <-- Use the standard simple wildcard
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'));
     });
 
 
