@@ -182,7 +182,7 @@ window.addEventListener('keydown', (e) => {
                 // clear the level_three auto-trigger block so manual keydown can progress it
                 try{ window.__BLOCK_AUTO_TRIGGER_LEVEL3 = false; }catch(e){}
                 // log debug info
-                try{ console.log('[initGame] triggerPendingEncounter keydown. pending:', _pendingEncounterLevel); }catch(e){}
+                
                 triggerPendingEncounterNow();
             }
         }catch(err){
@@ -373,7 +373,7 @@ window.addEventListener("mousedown", () => {
             try{ window.__BLOCK_AUTO_TRIGGER_LEVEL3 = false; }catch(e){}
         }
 
-        try{ console.log('[initGame] onEncounterResult', meta, correct); }catch(e){}
+        
         // prevent immediate input for a short time to avoid 'stuck' movement
         try{ inputBlockedUntil = Date.now() + 220; }catch(e){}
 
@@ -474,7 +474,7 @@ window.addEventListener("mousedown", () => {
                     try{ store.set(textBoxContentAtom, 'You bested me once... but not yet! Prepare yourself!'); }catch(e){}
                     try{ store.set(isTextBoxVisibleAtom, true); }catch(err){}
                     _pendingEncounterLevel = { level: 'level_two', step: 1 };
-                    try{ window.__AUTO_NEXT_ENCOUNTER = true; }catch(e){}
+                    try{ window.__AUTO_NEXT_ENCOUNTER = false; }catch(e){}
                     setTimeout(() => { try{ if(window.__AUTO_NEXT_ENCOUNTER){ window.__AUTO_NEXT_ENCOUNTER = false; triggerPendingEncounterNow(); } }catch(e){} }, 160);
                     return;
                 }
@@ -490,7 +490,7 @@ window.addEventListener("mousedown", () => {
                     if(_pendingEncounterTimeout){ clearTimeout(_pendingEncounterTimeout); _pendingEncounterTimeout = null; }
                     try{ window.__AUTO_NEXT_ENCOUNTER = false; }catch(e){}
                     try{ if(window.__currentScene === 'level_three' && window.__currentNpc){ try{ window.__currentNpc.play('npc-down'); }catch(e){} } }catch(e){}
-                    try{ console.log('[initGame] defeatedNpc3 set true'); const navEvent = new CustomEvent('TERMINAL_NAVIGATE', { detail: '/ScorePage' }); localStorage.setItem("gameScore", currentScore); window.dispatchEvent(navEvent); }catch(e){}
+                    try{ const navEvent = new CustomEvent('TERMINAL_NAVIGATE', { detail: '/ScorePage' }); localStorage.setItem("gameScore", currentScore); window.dispatchEvent(navEvent); }catch(e){}
                     try{ removeFinishOverlay(); }catch(e){}
                     try{ k.quit(); }catch(e){}
                     return;
@@ -823,7 +823,7 @@ window.addEventListener("mousedown", () => {
                     const spaceReleased = !!(window.__SPACE_WAS_RELEASED);
                     // require that the player has released space since opening the textbox
                     if(textVisibleNow && _pendingEncounterLevel && !justOpened && spaceReleased){
-                        try{ console.log('[initGame] triggerPendingEncounter from onUpdate. pending:', _pendingEncounterLevel); }catch(e){}
+                        try{ }catch(e){}
                         // if pending navigation to score, handle here (we have access to `k`)
                         try{
                             if(_pendingEncounterLevel && _pendingEncounterLevel.navigateToScore){
@@ -849,7 +849,7 @@ window.addEventListener("mousedown", () => {
                 if(isActTriggered){
                     const textVisibleNow = store.get(isTextBoxVisibleAtom);
                     if(textVisibleNow && _pendingEncounterLevel){
-                        try{ console.log('[initGame] triggerPendingEncounter from onUpdate. pending:', _pendingEncounterLevel); }catch(e){}
+                        try{  }catch(e){}
                         try{
                             if(_pendingEncounterLevel && _pendingEncounterLevel.navigateToScore){
                                 try{ localStorage.setItem("gameScore", currentScore); }catch(e){}
@@ -1290,7 +1290,7 @@ window.addEventListener("mousedown", () => {
                 if(isActTriggered){
                     const textVisibleNow = store.get(isTextBoxVisibleAtom);
                     if(textVisibleNow && _pendingEncounterLevel){
-                        try{ console.log('[initGame] triggerPendingEncounter from onUpdate. pending:', _pendingEncounterLevel); }catch(e){}
+                        
                         triggerPendingEncounterNow();
                         return;
                     }
