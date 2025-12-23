@@ -1,12 +1,26 @@
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { startGame } from '../main.jsx';
 import MainButton from "../NotUIReactComponents/MainButton.jsx"
+import Navbar from "../NotUIReactComponents/Navbar.jsx";
 
 export default function Home(){
 
   const navigate = useNavigate();
+
+  const [compactButtons, setCompactButtons] = useState(false);
+
+  useEffect(() => {
+    const checkCompact = () => {
+      // Compact when viewport height is small (mobile) or narrow width
+      const small = window.innerHeight < 700 || window.innerWidth < 420;
+      setCompactButtons(small);
+    };
+    checkCompact();
+    window.addEventListener('resize', checkCompact);
+    return () => window.removeEventListener('resize', checkCompact);
+  }, []);
 
   useEffect(() => {
     const handleNavigation = (event) => {
@@ -36,13 +50,14 @@ export default function Home(){
                       breathe text-center">
         HTML HERO
       </h1>
-      <div className="flex flex-col gap-4 sm:gap-6">
-        <MainButton title="Start Game" func={startGame} />
-        <MainButton title="Leaderboard" func={() => navigate('/Leaderboard')} />
-        <MainButton title="Exit" func={() => navigate('/')} />
+      <div className="flex flex-col gap-3 sm:gap-6">
+        <MainButton title="Start Game" func={startGame} size={compactButtons ? 'sm' : undefined} />
+        <MainButton title="Leaderboard" func={() => navigate('/Leaderboard')} size={compactButtons ? 'sm' : undefined} />
+        <MainButton title="Exit" func={() => navigate('/')} size={compactButtons ? 'sm' : undefined} />
       </div>
     </div>
   </div>
+  <Navbar />
 </>
 );
 
