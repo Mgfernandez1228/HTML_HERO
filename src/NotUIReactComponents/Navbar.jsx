@@ -5,9 +5,9 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Only show the navbar on the site Home ("/") or the protected Title ("/Title").
+  // Only show the navbar on selected site pages (Home, Title, Login, Signup, About).
   // All other routes render no navbar.
-  if (location.pathname !== '/' && location.pathname !== '/Title') return null;
+  if (location.pathname !== '/' && location.pathname !== '/Title' && location.pathname !== '/Login' && location.pathname !== '/Signup' && location.pathname !== '/About') return null;
   const [isOpen, setIsOpen] = useState(false);
   
   // 1. Check for logged in user

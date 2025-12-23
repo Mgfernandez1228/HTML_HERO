@@ -55,10 +55,10 @@ export default function Login({ setUser }) {
     <>
       <Navbar />
       <div className="flex items-center justify-center min-h-screen w-full bg-black px-4">
-        <div className="relative w-full max-w-md p-8 bg-gray-900/80 backdrop-blur-xl border-2 border-indigo-500 rounded-lg shadow-[0_0_30px_rgba(99,102,241,0.2)]">
+        <div className="relative w-full max-w-sm md:max-w-md p-6 md:p-8 bg-gray-900/80 backdrop-blur-xl border-2 border-indigo-500 rounded-lg shadow-[0_0_30px_rgba(99,102,241,0.2)]">
           
-          <div className="text-center mb-10">
-            <h2 style={themeFont} className="text-3xl text-white drop-shadow-[0_0_1px_#6366f1] mb-2">
+          <div className="text-center mb-8 md:mb-10">
+            <h2 style={themeFont} className="text-2xl md:text-3xl text-white drop-shadow-[0_0_1px_#6366f1] mb-2">
               LOGIN <span className="text-indigo-400">SESSION</span>
             </h2>
             <p style={themeFont} className={`text-[10px] tracking-widest uppercase ${error ? 'text-red-500' : 'text-indigo-500/60'}`}>
@@ -66,7 +66,7 @@ export default function Login({ setUser }) {
             </p>
           </div>
 
-          <form className="space-y-6" onSubmit={handleLogin}>
+          <form className="space-y-4 md:space-y-6" onSubmit={handleLogin}>
             <div>
               <label style={themeFont} className="block text-[12px] text-indigo-400 mb-2 uppercase ml-1">
                 Username
@@ -101,7 +101,7 @@ export default function Login({ setUser }) {
               <button 
                 type="submit"
                 style={themeFont}
-                className="w-full bg-indigo-600 hover:bg-white text-black font-bold py-4 rounded-sm transition-all border-b-4 border-indigo-800 active:border-b-0 active:translate-y-1 text-lg"
+                className="w-full bg-indigo-600 hover:bg-white text-black font-bold py-3 md:py-4 rounded-sm transition-all border-b-4 border-indigo-800 active:border-b-0 active:translate-y-1 text-base md:text-lg"
               >
                 LOGIN
               </button>
@@ -109,7 +109,7 @@ export default function Login({ setUser }) {
               <Link 
                 to="/Signup"
                 style={themeFont}
-                className="block text-center text-gray-500 hover:text-indigo-400 text-[10px] transition-colors uppercase tracking-widest"
+                className="block text-center text-gray-500 hover:text-indigo-400 text-[9px] md:text-[10px] transition-colors uppercase tracking-widest"
               >
                 No account? Create one here
               </Link>
