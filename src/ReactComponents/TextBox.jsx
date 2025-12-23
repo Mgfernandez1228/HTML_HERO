@@ -1,5 +1,5 @@
 import {useAtom, useAtomValue } from "jotai";
-import {textBoxContentAtom, isTextBoxVisibleAtom } from "../store.js";
+import {textBoxContentAtom, isTextBoxVisibleAtom, mobileButtonAtom } from "../store.js";
 import {motion} from "framer-motion";
 import "./TextBox.css";
 import { useEffect, useState } from "react";
@@ -12,6 +12,7 @@ const variants = {
 export default function TextBox(){
 
     const [isVisible, setIsVisible] = useAtom(isTextBoxVisibleAtom);
+    const [mobileDown] = useAtom(mobileButtonAtom);
     const [isCloseRequest, setIsCloseRequest] = useState(false);
     const content = useAtomValue(textBoxContentAtom);
 
@@ -38,6 +39,20 @@ export default function TextBox(){
         };
 
     }, [isVisible, setIsVisible]);
+
+    // Close via mobile ACT button: when mobile button goes down while
+    // the text box is visible, trigger close — but respect the game's
+    // short "just opened" guard and any mobile consume flag set when opening.
+    useEffect(() => {
+        if(!isVisible) return;
+        try{
+            const justOpened = !!(window.__TEXTBOX_JUST_OPENED);
+            const consume = !!(window.__MOBILE_CONSUME_PRESS);
+            if(mobileDown && !justOpened && !consume){
+                setIsCloseRequest(true);
+            }
+        }catch(e){}
+    }, [mobileDown, isVisible]);
 
     return( 
     isVisible && (

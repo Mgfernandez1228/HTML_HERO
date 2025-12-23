@@ -39,8 +39,25 @@ function scheduleEncounter(level){
     // Instead of auto-triggering after a timeout, store the pending level
     // and wait for the player to press Space to progress into the encounter.
     _pendingEncounterLevel = level;
+    // Clear mobile-consume/recent-close markers when scheduling level-3 so
+    // leftover state from passive level-2 interactions doesn't block progress.
+    try{
+        if(level === 'level_three'){
+            try{ window.__MOBILE_CONSUME_PRESS = false; }catch(e){}
+            try{ window.__MOBILE_RECENTLY_CLOSED_TEXTBOX = 0; }catch(e){}
+            try{ window.__TEXTBOX_IS_PASSIVE_LEVEL2 = false; }catch(e){}
+        }
+    }catch(e){}
     // For level_three, block automatic onUpdate triggers until a manual keydown clears it
-    try{ if(level === 'level_three'){ window.__BLOCK_AUTO_TRIGGER_LEVEL3 = true; } }catch(e){}
+    try{ 
+        if(level === 'level_three'){
+            // Only enable the auto-trigger block on non-touch devices (keyboard),
+            // on mobile/touch we want a simpler ACT flow so don't block automatic
+            // update-triggering here.
+            const hasTouch = (typeof window !== 'undefined') && (window.matchMedia && window.matchMedia('(pointer: coarse)').matches || (navigator && navigator.maxTouchPoints > 0));
+            if(!hasTouch){ window.__BLOCK_AUTO_TRIGGER_LEVEL3 = true; }
+        }
+    }catch(e){}
     // ensure no existing timeout remains
     if(_pendingEncounterTimeout){
         clearTimeout(_pendingEncounterTimeout);
@@ -193,6 +210,59 @@ window.addEventListener('keydown', (e) => {
     }
 });
 
+// Handle mobile ACT presses via a dedicated event so mobile buttons can
+// reliably trigger pending encounters without relying on synthetic keyboard events.
+window.addEventListener('MOBILE_ACT', () => {
+    try{
+        // If pending is a navigateToScore marker, allow ACT anywhere to navigate
+        if(_pendingEncounterLevel && _pendingEncounterLevel.navigateToScore){
+            try{ localStorage.setItem("gameScore", currentScore); }catch(e){}
+            try{ const navEvent = new CustomEvent('TERMINAL_NAVIGATE', { detail: '/ScorePage' }); window.dispatchEvent(navEvent); }catch(e){}
+            try{ removeFinishOverlay(); }catch(e){}
+            try{ k.quit(); }catch(e){}
+            _pendingEncounterLevel = null;
+            window.__AWAITING_SCORE_NAV = false;
+            return;
+        }
+
+        // require the text box to actually be visible before immediately triggering
+        try{
+            const textVisibleNow = store.get(isTextBoxVisibleAtom);
+            if(!textVisibleNow) return;
+        }catch(e){ return; }
+
+        // If an auto-next transition is in progress, ignore manual presses
+        if(window.__AUTO_NEXT_ENCOUNTER) return;
+        if(window.__TRANSITIONING) return;
+
+        try{
+            // Close the textbox immediately to avoid races where other handlers
+            // re-open it. Mark transitioning so other input is ignored briefly.
+            try{ store.set(isTextBoxVisibleAtom, false); }catch(e){}
+            try{ window.__TRANSITIONING = true; }catch(e){}
+            setTimeout(() => { try{ window.__TRANSITIONING = false; }catch(e){} }, 320);
+
+            // Mark that we recently closed a textbox so openTextBox will ignore
+            // immediate re-open attempts from touch timing.
+            try{ window.__MOBILE_RECENTLY_CLOSED_TEXTBOX = Date.now(); }catch(e){}
+            try{ window.__TEXTBOX_JUST_OPENED = false; }catch(e){}
+
+            const activeEncounter = store.get(encounterAtom);
+            if(!activeEncounter){
+                try{ window.__BLOCK_AUTO_TRIGGER_LEVEL3 = false; }catch(e){}
+                try{ window.__MOBILE_CONSUME_PRESS = true; }catch(e){}
+                // small delay to let closed textbox state settle and avoid
+                // immediate re-open/re-trigger races on touch devices
+                setTimeout(() => { try{ triggerPendingEncounterNow(); }catch(e){} }, 60);
+            }
+        }catch(err){
+            try{ window.__BLOCK_AUTO_TRIGGER_LEVEL3 = false; }catch(e){}
+            try{ window.__MOBILE_CONSUME_PRESS = true; }catch(e){}
+            setTimeout(() => { try{ triggerPendingEncounterNow(); }catch(e){} }, 60);
+        }
+    }catch(e){}
+});
+
 // Clear the 'just opened' guard when the space key is released so a subsequent press can progress.
 window.addEventListener('keyup', (e) => {
     if(!e) return;
@@ -298,7 +368,19 @@ export default function initGame(){
 
     // Helper to open the textbox and set a short ignore window for mobile presses
     function openTextBox() {
-        try{ store.set(isTextBoxVisibleAtom, true); }catch(e){}
+        try{
+            // debounce: ignore repeated calls within 300ms to prevent
+            // rapid open/close/open loops from touch input timing.
+            const last = window.__LAST_OPEN_TEXTBOX || 0;
+            const now = Date.now();
+            const recentlyClosed = window.__MOBILE_RECENTLY_CLOSED_TEXTBOX || 0;
+            if(now < last + 300) return;
+            // if we just closed the textbox via mobile ACT, ignore immediate re-open
+            if(now < recentlyClosed + 300) return;
+            window.__LAST_OPEN_TEXTBOX = now;
+        }catch(e){}
+
+            store.set(isTextBoxVisibleAtom, true); 
         try{ window.__TEXTBOX_JUST_OPENED = true; }catch(e){}
         // extend ignore window slightly and mark that we should consume the opening press
         try{ window.__MOBILE_IGNORE_UNTIL = Date.now() + 300; }catch(e){}
@@ -511,8 +593,18 @@ window.addEventListener("mousedown", () => {
             }
 
             if(level === 'level_three'){
-                if(step === 0){ try{ store.set(textBoxContentAtom, 'Impressive... but you will need more than that.'); }catch(e){}; try{ openTextBox(); }catch(err){}; _pendingEncounterLevel = { level: 'level_three', step: 1 }; try{ window.__AUTO_NEXT_ENCOUNTER = true; }catch(e){}; setTimeout(() => { try{ if(window.__AUTO_NEXT_ENCOUNTER){ window.__AUTO_NEXT_ENCOUNTER = false; triggerPendingEncounterNow(); } }catch(e){} }, 160); return; }
-                if(step === 1){ try{ store.set(textBoxContentAtom, 'You are persistent. Final test!'); }catch(e){}; try{ openTextBox(); }catch(err){}; _pendingEncounterLevel = { level: 'level_three', step: 2 }; try{ window.__AUTO_NEXT_ENCOUNTER = true; }catch(e){}; setTimeout(() => { try{ if(window.__AUTO_NEXT_ENCOUNTER){ window.__AUTO_NEXT_ENCOUNTER = false; triggerPendingEncounterNow(); } }catch(e){} }, 160); return; }
+                if(step === 0){
+                    try{ store.set(textBoxContentAtom, 'Impressive... but you will need more than that.'); }catch(e){}
+                    try{ openTextBox(); }catch(err){}
+                    try{ scheduleEncounter('level_three'); }catch(e){}
+                    return;
+                }
+                if(step === 1){
+                    try{ store.set(textBoxContentAtom, 'You are persistent. Final test!'); }catch(e){}
+                    try{ openTextBox(); }catch(err){}
+                    try{ scheduleEncounter('level_three'); }catch(e){}
+                    return;
+                }
                 if(step === 2){
                     defeatedNpc3 = true;
                     try{ _pendingEncounterLevel = null; }catch(e){}
@@ -1041,12 +1133,23 @@ window.addEventListener("mousedown", () => {
                 player.move(k.vec2(player.direction.x, player.direction.y).scale(player.speed));
             }
 
-            //check when colliding from npx or adjacent and pressing space
-            if((isCollidingNpc || playerNearNpc(player, npc)) && (isActTriggered)){
+            //check when colliding from npc or adjacent and pressing space/ACT
+            // Treat the mobile button being held as an interaction trigger as well
+            // so passive moved NPC dialogues open reliably on touch devices.
+            const mobileHeld = !!store.get(mobileButtonAtom);
+            if((isCollidingNpc || playerNearNpc(player, npc)) && (isActTriggered || mobileHeld)){
                 // if an encounter UI is active, ignore this input to avoid overlapping dialogue
                 try{
                     const activeEncounter = store.get(encounterAtom);
                     if(activeEncounter) return;
+                }catch(e){}
+
+                // If we just closed a text box via mobile ACT, ignore immediate
+                // re-open attempts (workaround for touch input timing). The
+                // `__MOBILE_RECENTLY_CLOSED_TEXTBOX` stamp is set by the ACT button.
+                try{
+                    const recentClosed = (window.__MOBILE_RECENTLY_CLOSED_TEXTBOX) || 0;
+                    if(Date.now() < (recentClosed + 300)) return;
                 }catch(e){}
 
                 // if boss already defeated, behave as passive NPC (no re-trigger)
@@ -1440,6 +1543,9 @@ window.addEventListener("mousedown", () => {
                         store.set(textBoxContentAtom, levelTwoPassive.left);
                         npc.play("npc2-right-idle");
                     }
+                    // Mark this textbox as the passive moved level-2 dialogue so
+                    // the mobile ACT button can use a localized close behavior.
+                    try{ window.__TEXTBOX_IS_PASSIVE_LEVEL2 = true; }catch(e){}
                     openTextBox();
                     return;
                 }
