@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Only show the navbar on the site Home ("/"). All other routes render no navbar.
+  if (location.pathname !== '/') return null;
   const [isOpen, setIsOpen] = useState(false);
   
   // 1. Check for logged in user
@@ -13,6 +17,14 @@ export default function Navbar() {
   };
 
   const toggleMenu = () => setIsOpen(!isOpen);
+
+  // When the navbar is present, add a class to the website root so global
+  // layout (padding for the fixed nav) is only applied when the nav exists.
+  useEffect(() => {
+    const root = document.getElementById('website-root');
+    if (root) root.classList.add('with-navbar');
+    return () => { if (root) root.classList.remove('with-navbar'); };
+  }, []);
 
   // 2. Clear session and return to Home/Login
   const handleLogout = () => {
@@ -26,7 +38,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 w-full h-20 z-[70] flex items-center justify-between px-6 bg-cyan-900/90 backdrop-blur-md border-b border-cyan-500/30">
+      <nav style={{ height: 'var(--navbar-height)' }} className="fixed top-0 left-0 w-full z-[70] flex items-center justify-between px-6 bg-cyan-900/90 backdrop-blur-md border-b border-cyan-500/30">
         <div 
           onClick={() => { navigate('/'); setIsOpen(false); }}
           style={navFontStyle}
@@ -72,7 +84,8 @@ export default function Navbar() {
 
       {/* Mobile Dropdown */}
       <div 
-        className={`fixed top-20 left-0 w-full bg-black/95 border-b border-cyan-500/50 z-[60] 
+        style={{ top: 'var(--navbar-height)' }}
+        className={`fixed left-0 w-full bg-black/95 border-b border-cyan-500/50 z-[60] 
         transition-all duration-300 ease-in-out overflow-hidden md:hidden
         ${isOpen ? 'max-h-[400px] opacity-100 shadow-[0_20px_50px_rgba(0,255,255,0.2)]' : 'max-h-0 opacity-0 pointer-events-none'}`}
       >

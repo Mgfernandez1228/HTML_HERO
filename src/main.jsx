@@ -39,17 +39,47 @@ export function startGame(){
 
 
   body.style.overflow = "hidden";//hides the whole website when in the game.
-
   
-  new ResizeObserver(() => {
-    document.documentElement.style.setProperty(
-      "--scale",
-      Math.min(
-        ui.parentElement.offsetWidth / ui.offsetWidth,
-        ui.parentElement.offsetHeight / ui.offsetHeight
-      )
-    );
-  }).observe(ui.parentElement);
+  // Use ResizeObserver on the UI parent so element positions (absolute/relative)
+  // remain consistent with the original layout while still making the whole
+  // UI scale down to fit smaller viewports.
+  const getDesignDims = () => {
+    const cs = getComputedStyle(document.documentElement);
+    const w = parseFloat(cs.getPropertyValue('--width')) || 1920;
+    const h = parseFloat(cs.getPropertyValue('--height')) || 1080;
+    return { w, h };
+  };
+
+  const updateScaleForParent = (parent) => {
+    try{
+      const { w, h } = getDesignDims();
+      const scale = Math.min(
+        parent.offsetWidth / w,
+        parent.offsetHeight / h
+      );
+      document.documentElement.style.setProperty('--scale', String(scale));
+    }catch(e){
+      document.documentElement.style.setProperty('--scale', '1');
+    }
+  };
+
+  // observe the ui.parentElement (same approach as original implementation)
+  try{
+    const parent = ui.parentElement;
+    if(parent){
+      updateScaleForParent(parent);
+      const ro = new ResizeObserver(() => updateScaleForParent(parent));
+      ro.observe(parent);
+
+      // also update on global resize/orientation as a safety net
+      const bound = () => updateScaleForParent(parent);
+      window.addEventListener('resize', bound);
+      window.addEventListener('orientationchange', bound);
+    }
+  }catch(e){
+    // fallback: set neutral scale
+    document.documentElement.style.setProperty('--scale', '1');
+  }
 
 
   activeRoot = createRoot(ui);

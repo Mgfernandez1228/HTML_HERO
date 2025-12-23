@@ -12,12 +12,19 @@ export default function Joystick() {
 
     // Detect touch device on mount
     useEffect(() => {
-        const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-        setIsTouchDevice(hasTouch);
+        const hasTouch = (
+            typeof window !== 'undefined' && (
+                'ontouchstart' in window ||
+                (navigator && (navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0)) ||
+                (window.matchMedia && (window.matchMedia('(pointer: coarse)').matches || window.matchMedia('(hover: none)').matches))
+            )
+        );
+        setIsTouchDevice(Boolean(hasTouch));
     }, []);
 
-    const OUTER_RADIUS = 60; // Half of 120px outer ring
-    const KNOB_RADIUS = 25;  // Half of 50px knob
+    // 1.75x of original sizes: original outer half=60, knob half=25 -> 60*1.75=105, 25*1.75=43.75 ~ 44
+    const OUTER_RADIUS = 105; // Half of 210px outer ring (1.75x)
+    const KNOB_RADIUS = 44;  // Half of ~88px knob (1.75x)
     const MAX_DISTANCE = OUTER_RADIUS - KNOB_RADIUS;
 
     const handleMove = useCallback((clientX, clientY) => {

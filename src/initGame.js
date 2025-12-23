@@ -227,7 +227,7 @@ window.addEventListener('keydown', (e) => {
                     else if(facing.eq(k.vec2(0,1))){ store.set(textBoxContentAtom, levelThreePassive.up); window.__currentNpc.play('npc3-up-idle'); }
                     else if(facing.eq(k.vec2(1,0))){ store.set(textBoxContentAtom, levelThreePassive.right); window.__currentNpc.play('npc3-left-idle'); }
                     else if(facing.eq(k.vec2(-1,0))){ store.set(textBoxContentAtom, levelThreePassive.left); window.__currentNpc.play('npc3-right-idle'); }
-                    store.set(isTextBoxVisibleAtom, true);
+                    openTextBox();
                 }catch(e){}
                 return;
             }
@@ -259,17 +259,17 @@ window.addEventListener('keydown', (e) => {
             if(sceneName === 'level_two'){
                 store.set(textBoxContentAtom, levelTwoIntro);
                 playFacing(dx, dy);
-                store.set(isTextBoxVisibleAtom, true);
+                openTextBox();
                 scheduleEncounter('level_two');
             } else if(sceneName === 'level_three'){
                 store.set(textBoxContentAtom, levelThreeIntro);
                 playFacing(dx, dy);
-                store.set(isTextBoxVisibleAtom, true);
+                openTextBox();
                 scheduleEncounter('level_three');
             } else if(sceneName === 'level_one'){
                 store.set(textBoxContentAtom, levelOneIntro);
                 playFacing(dx, dy);
-                store.set(isTextBoxVisibleAtom, true);
+                openTextBox();
                 scheduleEncounter('level_one');
             }
         }
@@ -280,6 +280,35 @@ window.addEventListener('keydown', (e) => {
 export default function initGame(){
     
     const k = initKaplay();    
+
+    // Helper: return the correct prompt text depending on input type.
+    // Desktop -> 'Press Space ...' ; Mobile/Touch -> 'Press ACT ...' (or 'Touch ...')
+    function getContinueText(kind) {
+        try{
+            const hasTouch = (typeof window !== 'undefined') && (window.matchMedia && window.matchMedia('(pointer: coarse)').matches || (navigator && navigator.maxTouchPoints > 0));
+            const isTouch = Boolean(hasTouch);
+            if(kind === 'interact') return isTouch ? 'Press ACT to interact' : 'Press Space to interact';
+            if(kind === 'seeScore') return isTouch ? 'You Finished The Game! Press ACT to see your score' : 'You Finished The Game! Press Space to see your score';
+            if(kind === 'continue') return isTouch ? 'Press ACT to continue' : 'Press Space to continue';
+            return isTouch ? 'Touch to continue' : 'Press Space to continue';
+        }catch(e){
+            return 'Press Space to continue';
+        }
+    }
+
+    // Helper to open the textbox and set a short ignore window for mobile presses
+    function openTextBox() {
+        try{ store.set(isTextBoxVisibleAtom, true); }catch(e){}
+        try{ window.__TEXTBOX_JUST_OPENED = true; }catch(e){}
+        // extend ignore window slightly and mark that we should consume the opening press
+        try{ window.__MOBILE_IGNORE_UNTIL = Date.now() + 300; }catch(e){}
+        try{ window.__MOBILE_CONSUME_PRESS = true; }catch(e){}
+        try{
+            if(window.__DEBUG_TOUCH) console.debug('[initGame] openTextBox set MOBILE_IGNORE_UNTIL=', window.__MOBILE_IGNORE_UNTIL, 'and set MOBILE_CONSUME_PRESS');
+        }catch(e){}
+        // ensure the just-opened guard is cleared after a short grace period
+        try{ setTimeout(() => { try{ window.__TEXTBOX_JUST_OPENED = false; }catch(e){} }, 300); }catch(e){}
+    }
     
     function fadeToScene(sceneName, duration = 0.5) {
     const overlay = k.add([
@@ -413,7 +442,7 @@ window.addEventListener("mousedown", () => {
                 // If there are more questions in this encounter, queue the next question
                 if(nextQuestionIdx < steps.length){
                     try{ store.set(textBoxContentAtom, 'Correct! Next question...'); }catch(e){}
-                    try{ store.set(isTextBoxVisibleAtom, true); }catch(e){}
+                    try{ openTextBox(); }catch(e){}
                     // schedule the next question within the same encounter
                     _pendingEncounterLevel = { level: lvl, encounters, encounterIdx: encounterIdx, questionIdx: nextQuestionIdx };
                     try{ window.__AUTO_NEXT_ENCOUNTER = true; }catch(e){}
@@ -425,7 +454,7 @@ window.addEventListener("mousedown", () => {
                 const nextEncounterIdx = encounterIdx + 1;
                 if(nextEncounterIdx < encounters.length){
                     try{ store.set(textBoxContentAtom, 'Well done. Prepare for the next encounter.'); }catch(e){}
-                    try{ store.set(isTextBoxVisibleAtom, true); }catch(e){}
+                    try{ openTextBox(); }catch(e){}
                     _pendingEncounterLevel = { level: lvl, encounters, encounterIdx: nextEncounterIdx, questionIdx: 0 };
                     try{ window.__AUTO_NEXT_ENCOUNTER = true; }catch(e){}
                     setTimeout(() => { try{ if(window.__AUTO_NEXT_ENCOUNTER){ window.__AUTO_NEXT_ENCOUNTER = false; triggerPendingEncounterNow(); } }catch(e){} }, 160);
@@ -472,7 +501,7 @@ window.addEventListener("mousedown", () => {
                 // two-step sequence: step 0 -> step 1 -> win level
                 if(step === 0){
                     try{ store.set(textBoxContentAtom, 'You bested me once... but not yet! Prepare yourself!'); }catch(e){}
-                    try{ store.set(isTextBoxVisibleAtom, true); }catch(err){}
+                    try{ openTextBox(); }catch(err){}
                     _pendingEncounterLevel = { level: 'level_two', step: 1 };
                     try{ window.__AUTO_NEXT_ENCOUNTER = false; }catch(e){}
                     setTimeout(() => { try{ if(window.__AUTO_NEXT_ENCOUNTER){ window.__AUTO_NEXT_ENCOUNTER = false; triggerPendingEncounterNow(); } }catch(e){} }, 160);
@@ -482,8 +511,8 @@ window.addEventListener("mousedown", () => {
             }
 
             if(level === 'level_three'){
-                if(step === 0){ try{ store.set(textBoxContentAtom, 'Impressive... but you will need more than that.'); }catch(e){}; try{ store.set(isTextBoxVisibleAtom, true); }catch(err){}; _pendingEncounterLevel = { level: 'level_three', step: 1 }; try{ window.__AUTO_NEXT_ENCOUNTER = true; }catch(e){}; setTimeout(() => { try{ if(window.__AUTO_NEXT_ENCOUNTER){ window.__AUTO_NEXT_ENCOUNTER = false; triggerPendingEncounterNow(); } }catch(e){} }, 160); return; }
-                if(step === 1){ try{ store.set(textBoxContentAtom, 'You are persistent. Final test!'); }catch(e){}; try{ store.set(isTextBoxVisibleAtom, true); }catch(err){}; _pendingEncounterLevel = { level: 'level_three', step: 2 }; try{ window.__AUTO_NEXT_ENCOUNTER = true; }catch(e){}; setTimeout(() => { try{ if(window.__AUTO_NEXT_ENCOUNTER){ window.__AUTO_NEXT_ENCOUNTER = false; triggerPendingEncounterNow(); } }catch(e){} }, 160); return; }
+                if(step === 0){ try{ store.set(textBoxContentAtom, 'Impressive... but you will need more than that.'); }catch(e){}; try{ openTextBox(); }catch(err){}; _pendingEncounterLevel = { level: 'level_three', step: 1 }; try{ window.__AUTO_NEXT_ENCOUNTER = true; }catch(e){}; setTimeout(() => { try{ if(window.__AUTO_NEXT_ENCOUNTER){ window.__AUTO_NEXT_ENCOUNTER = false; triggerPendingEncounterNow(); } }catch(e){} }, 160); return; }
+                if(step === 1){ try{ store.set(textBoxContentAtom, 'You are persistent. Final test!'); }catch(e){}; try{ openTextBox(); }catch(err){}; _pendingEncounterLevel = { level: 'level_three', step: 2 }; try{ window.__AUTO_NEXT_ENCOUNTER = true; }catch(e){}; setTimeout(() => { try{ if(window.__AUTO_NEXT_ENCOUNTER){ window.__AUTO_NEXT_ENCOUNTER = false; triggerPendingEncounterNow(); } }catch(e){} }, 160); return; }
                 if(step === 2){
                     defeatedNpc3 = true;
                     try{ _pendingEncounterLevel = null; }catch(e){}
@@ -790,13 +819,26 @@ window.addEventListener("mousedown", () => {
 
             // 2. Create a custom "Mobile Pressed" flag to mimic k.isKeyPressed
             // This prevents the button from "stuttering" through multiple dialogue steps
+            // and respects a short ignore window set when the textbox opens.
             let mobileJustPressed = false;
-            if (store.get(mobileButtonAtom) && !window.__MOBILE_BUTTON_HELD) {
-                mobileJustPressed = true;
-                window.__MOBILE_BUTTON_HELD = true;
-            } else if (!store.get(mobileButtonAtom)) {
-                window.__MOBILE_BUTTON_HELD = false;
-            }
+            try{
+                const nowMs = Date.now();
+                const ignoreUntil = (window.__MOBILE_IGNORE_UNTIL) || 0;
+                const mobileDown = !!store.get(mobileButtonAtom);
+                if (mobileDown && !window.__MOBILE_BUTTON_HELD) {
+                    // If press occurred during ignore window, mark consume; otherwise treat as fresh press
+                    if (ignoreUntil && nowMs < ignoreUntil) {
+                        try{ window.__MOBILE_CONSUME_PRESS = true; }catch(e){}
+                    } else {
+                        mobileJustPressed = true;
+                    }
+                    window.__MOBILE_BUTTON_HELD = true;
+                } else if (!mobileDown) {
+                    window.__MOBILE_BUTTON_HELD = false;
+                    try{ window.__MOBILE_CONSUME_PRESS = false; }catch(e){}
+                }
+                try{ if(window.__DEBUG_TOUCH) console.debug('[initGame] mobileJustPressed=', mobileJustPressed, 'mobileDown=', mobileDown, 'ignoreUntil=', ignoreUntil, 'consume=', window.__MOBILE_CONSUME_PRESS); }catch(e){}
+            }catch(e){}
 
             const isActTriggered = spaceKeyPressed || mobileJustPressed;
 
@@ -836,6 +878,11 @@ window.addEventListener("mousedown", () => {
                                 return;
                             }
                         }catch(e){}
+                        // If we consumed the mobile press when opening the textbox,
+                        // consume this trigger as well and clear the flag.
+                        try{
+                            if(window.__MOBILE_CONSUME_PRESS){ window.__MOBILE_CONSUME_PRESS = false; return; }
+                        }catch(e){}
                         triggerPendingEncounterNow();
                         return;
                     }
@@ -843,29 +890,7 @@ window.addEventListener("mousedown", () => {
                 }
             }catch(e){}
 
-            // If player presses Space while a text box is visible and a pending encounter exists,
-            // trigger it immediately. This fixes cases where browser keydown timing misses the pending flag.
-            try{
-                if(isActTriggered){
-                    const textVisibleNow = store.get(isTextBoxVisibleAtom);
-                    if(textVisibleNow && _pendingEncounterLevel){
-                        try{  }catch(e){}
-                        try{
-                            if(_pendingEncounterLevel && _pendingEncounterLevel.navigateToScore){
-                                try{ localStorage.setItem("gameScore", currentScore); }catch(e){}
-                                try{ const navEvent = new CustomEvent('TERMINAL_NAVIGATE', { detail: '/ScorePage' }); window.dispatchEvent(navEvent); }catch(e){}
-                                try{ removeFinishOverlay(); }catch(e){}
-                                try{ k.quit(); }catch(e){}
-                                _pendingEncounterLevel = null;
-                                window.__AWAITING_SCORE_NAV = false;
-                                return;
-                            }
-                        }catch(e){}
-                        triggerPendingEncounterNow();
-                        return;
-                    }
-                }
-            }catch(e){}
+            
 
             // if a text box (NPC dialogue) is visible, block all player movement
             try{
@@ -1031,7 +1056,7 @@ window.addEventListener("mousedown", () => {
                     else if(facing.eq(k.vec2(0,1))){ store.set(textBoxContentAtom, levelThreePassive.up); npc.play("npc3-up-idle"); }
                     else if(facing.eq(k.vec2(1,0))){ store.set(textBoxContentAtom, levelThreePassive.right); npc.play("npc3-left-idle"); }
                     else if(facing.eq(k.vec2(-1,0))){ store.set(textBoxContentAtom, levelThreePassive.left); npc.play("npc3-right-idle"); }
-                    store.set(isTextBoxVisibleAtom, true);
+                    openTextBox();
                     return;
                 }
                 const facing = getPlayerFacing(player);
@@ -1055,7 +1080,7 @@ window.addEventListener("mousedown", () => {
                     npc.play("npc3-right-idle");
                 }
 
-                store.set(isTextBoxVisibleAtom, true);
+                openTextBox();
                 scheduleEncounter('level_three');
 
 
@@ -1274,13 +1299,22 @@ window.addEventListener("mousedown", () => {
 
             // 2. Create a custom "Mobile Pressed" flag to mimic k.isKeyPressed
             // This prevents the button from "stuttering" through multiple dialogue steps
+            // and respects a short ignore window set when the textbox opens.
             let mobileJustPressed = false;
-            if (store.get(mobileButtonAtom) && !window.__MOBILE_BUTTON_HELD) {
-                mobileJustPressed = true;
-                window.__MOBILE_BUTTON_HELD = true;
-            } else if (!store.get(mobileButtonAtom)) {
-                window.__MOBILE_BUTTON_HELD = false;
-            }
+            try{
+                const nowMs = Date.now();
+                const ignoreUntil = (window.__MOBILE_IGNORE_UNTIL) || 0;
+                const mobileDown = !!store.get(mobileButtonAtom);
+                if (mobileDown && !window.__MOBILE_BUTTON_HELD) {
+                    // Only treat as a fresh press if we're not inside the ignore window
+                    if (!(ignoreUntil && nowMs < ignoreUntil)) {
+                        mobileJustPressed = true;
+                    }
+                    window.__MOBILE_BUTTON_HELD = true;
+                } else if (!mobileDown) {
+                    window.__MOBILE_BUTTON_HELD = false;
+                }
+            }catch(e){}
 
             const isActTriggered = spaceKeyPressed || mobileJustPressed;
 
@@ -1291,6 +1325,9 @@ window.addEventListener("mousedown", () => {
                     const textVisibleNow = store.get(isTextBoxVisibleAtom);
                     if(textVisibleNow && _pendingEncounterLevel){
                         
+                        try{
+                            if(window.__MOBILE_CONSUME_PRESS){ window.__MOBILE_CONSUME_PRESS = false; return; }
+                        }catch(e){}
                         triggerPendingEncounterNow();
                         return;
                     }
@@ -1403,7 +1440,7 @@ window.addEventListener("mousedown", () => {
                         store.set(textBoxContentAtom, levelTwoPassive.left);
                         npc.play("npc2-right-idle");
                     }
-                    store.set(isTextBoxVisibleAtom, true);
+                    openTextBox();
                     return;
                 }
 
@@ -1420,7 +1457,7 @@ window.addEventListener("mousedown", () => {
                 }
 
 
-                store.set(isTextBoxVisibleAtom, true);
+                openTextBox();
                 scheduleEncounter('level_two');
             }
 
@@ -1730,7 +1767,7 @@ window.addEventListener("mousedown", () => {
                     npc.play("npc1-right-idle");
                 }
 
-                store.set(isTextBoxVisibleAtom, true);
+                openTextBox();
                 scheduleEncounter('level_one');
 
             }
@@ -1787,7 +1824,7 @@ window.addEventListener("mousedown", () => {
         if (!hint) {
             hint = document.createElement('div');
             hint.id = 'npc-hint';
-            hint.textContent = 'Press Space to interact';
+            hint.textContent = getContinueText('interact');
             Object.assign(hint.style, {
                 position: 'fixed',
                 bottom: '120px',
@@ -1808,33 +1845,64 @@ window.addEventListener("mousedown", () => {
         return hint;
     }
 
-    // Create or return the in-game DOM score overlay (fixed top-right)
+    // Create or return the in-game DOM score overlay.
+    // To keep the overlay positioned relative to the scaled game UI (so desktop
+    // and mobile positions match), append it inside `#ui` when available and
+    // position absolutely using the design px offsets. Fall back to fixed
+    // positioning on `document.body` if `#ui` is not present.
     function ensureScoreOverlay() {
         let el = document.getElementById('in-game-score');
         if (!el) {
             el = document.createElement('div');
             el.id = 'in-game-score';
-            Object.assign(el.style, {
-                position: 'fixed',
-                top: SCORE_OVERLAY_TOP,
-                right: SCORE_OVERLAY_RIGHT,
+
+            // base styles applied regardless of parent
+            const baseStyles = {
                 zIndex: 999999,
                 background: 'rgba(0,0,0,0.6)',
                 color: '#FF0004',
                 border: '2px solid rgba(255,255,255,1)',
                 borderRadius: '8px',
-                padding: '6px 12px',
+                padding: 'var(--score-padding, 6px 12px)',
                 fontFamily: '"gameboy", monospace',
-                fontSize: '20px',
+                fontSize: 'var(--score-font-size, 20px)',
                 textTransform: 'uppercase',
                 pointerEvents: 'none',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 opacity: '1',
-            });
+            };
+
+            // Try to attach inside the game UI so it will inherit the UI scale
+            const uiEl = document.getElementById('ui');
+            if (uiEl) {
+                Object.assign(el.style, baseStyles, {
+                    position: 'absolute',
+                    top: 'var(--score-top)',
+                    right: 'var(--score-right)',
+                    transform: 'none',
+                });
+                // Ensure the ui container is positioned so absolute children anchor correctly
+                try {
+                    const computed = getComputedStyle(uiEl);
+                    if (computed.position === 'static' || !computed.position) {
+                        uiEl.style.position = uiEl.style.position || 'relative';
+                    }
+                } catch (e) {}
+
+                uiEl.appendChild(el);
+            } else {
+                // fallback to fixed on body
+                Object.assign(el.style, baseStyles, {
+                    position: 'fixed',
+                    top: 'var(--score-top)',
+                    right: 'var(--score-right)',
+                });
+                document.body.appendChild(el);
+            }
+
             el.textContent = `SCORE: ${currentScore.toString().padStart(6,'0')}`;
-            document.body.appendChild(el);
         }
         return el;
     }
@@ -1856,7 +1924,7 @@ window.addEventListener("mousedown", () => {
             });
             const msg = document.createElement('div');
             msg.id = 'game-finished-overlay-msg';
-            msg.textContent = 'You Finished The Game! Press space to see your score';
+            msg.textContent = getContinueText('seeScore');
             Object.assign(msg.style, {
                 marginBottom: '48px',
                 background: 'rgba(0,0,0,0.75)',

@@ -22,15 +22,26 @@ export default function Hearts({
     prevHearts.current = hearts;
   }, [hearts]);
 
+  // Determine a responsive size on mobile devices so hearts are larger and
+  // easier to tap/see. Apply a global shrink factor of 0.85 to make hearts
+  // 15% smaller overall as requested.
+  const SHRINK = 0.85;
+  const isSmall = (typeof window !== 'undefined') && (window.matchMedia('(max-width:640px), (max-height:640px)').matches);
+  const scaleMultiplier = isSmall ? 1.5 : 1;
+  const effectiveSize = Math.round(size * scaleMultiplier * SHRINK);
+  const effectiveTop = typeof top === 'number' ? (isSmall ? Math.round((top + 12) * SHRINK) : Math.round(top * SHRINK)) : top;
+  const effectiveRight = typeof right === 'number' ? (isSmall ? Math.round((right + 8) * SHRINK) : Math.round(right * SHRINK)) : right;
+  const effectiveGap = Math.round(10 * scaleMultiplier * SHRINK);
+
   return (
     <div
       style={{
         position: 'fixed',
-        top,
-        right,
+        top: effectiveTop,
+        right: effectiveRight,
         display: 'flex',
-        gap: 8,
-        fontSize: size,
+        gap: effectiveGap,
+        fontSize: effectiveSize,
         zIndex: 100,
         pointerEvents: 'none',
       }}
@@ -45,7 +56,7 @@ export default function Hearts({
             className={`heart ${isDamaged ? 'heart-damage' : ''}`}
             style={{
               opacity: isFilled ? 1 : 0.25,
-              ['--heart-size']: `${size}px`,
+              ['--heart-size']: `${effectiveSize}px`,
             }}
             aria-hidden={true}
           />

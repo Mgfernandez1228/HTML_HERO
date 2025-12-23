@@ -7,6 +7,48 @@
     box-sizing: border-box;
 }
 
+/* Compact mobile tweaks: reduce padding/gaps and font sizes on short/small viewports
+     so menu dialogs and buttons remain fully visible without needing to scroll. */
+@media (max-height:720px), (max-width:420px) {
+    /* Reduce large container gaps used across pages */
+    .relative.z-10, .flex.flex-col.items-center.justify-center, .flex.flex-col.items-center {
+        gap: 0.5rem !important;
+        padding: 0.5rem !important;
+    }
+
+    /* Buttons: use smaller padding and scale down font sizes */
+    button, .bg-gray-800 {
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        font-size: clamp(14px, 3.5vw, 18px) !important;
+    }
+
+    /* MainButton specific smaller sizing when needed */
+    .p-4, .px-8, .text-3xl {
+        padding: 0.5rem !important;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        font-size: clamp(18px, 4vw, 22px) !important;
+    }
+
+    /* Headings: slightly reduce to keep header + buttons on-screen */
+    .text-4xl, .text-3xl, .text-5xl {
+        font-size: clamp(18px, 5vw, 28px) !important;
+    }
+
+    /* Reduce modal/dialog padding */
+    .p-8, .px-6, .p-6 {
+        padding: 0.5rem !important;
+    }
+
+    /* Leaderboard list area: decrease max-height so its controls remain visible */
+    .max-h-\[50vh\], .max-h-\[60vh\] {
+        max-height: 40vh !important;
+    }
+}
+
 @font-face {
     font-family: "gameboy";
     src: url(/gameboy.ttf);
@@ -19,6 +61,53 @@
 
     /* default scale for UI */
     --scale: 1;
+    /* navbar height used to reserve space for fixed navbar */
+    --navbar-height: 80px;
+    /* score overlay responsive values */
+    --score-top: 108px;
+    --score-right: 40px;
+    --score-font-size: 31px; /* 36 * 0.85 */
+    --score-padding: 10px 15px; /* 12x18 -> scaled down 0.85 */
+}
+
+/* Responsive navbar heights: slightly smaller on tablets and phones */
+@media (max-width: 1024px) {
+    :root { --navbar-height: 72px; }
+}
+@media (max-width: 640px) {
+    :root { --navbar-height: 64px; }
+}
+@media (max-width: 420px), (max-height: 640px) {
+    :root { --navbar-height: 56px; }
+}
+
+/* Responsive adjustments for the in-game score overlay */
+@media (max-width: 1024px) {
+    :root {
+        /* tablets: move score slightly lower and increase size for readability */
+        --score-top: 128px;
+        --score-right: 36px;
+        --score-font-size: 34px; /* 40 * 0.85 */
+        --score-padding: 10px 14px;
+    }
+}
+@media (max-width: 640px) {
+    :root {
+        /* mobile phones: move score lower (to clear bigger hearts) and increase font */
+        --score-top: 148px;
+        --score-right: 34px;
+        --score-font-size: 37px; /* 44 * 0.85 */
+        --score-padding: 8px 12px;
+    }
+}
+@media (max-width: 420px), (max-height: 640px) {
+    :root {
+        /* very small screens: push score further down and increase size for legibility */
+        --score-top: 168px;
+        --score-right: 30px;
+        --score-font-size: 41px; /* 48 * 0.85 */
+        --score-padding: 7px 10px;
+    }
 }
 
 /* -------------------------
@@ -45,9 +134,13 @@ body {
 #website-root {
     position: relative;       /* relative to allow absolute children */
     z-index: 10;
+}
 
-    /* optional centering for website content */
-
+/* Only add top padding when the navbar is present. The Navbar component will
+   toggle the `with-navbar` class on `#website-root` when mounted. */
+#website-root.with-navbar {
+    /* reserve space for the fixed navbar so headings/buttons aren't hidden */
+    padding-top: var(--navbar-height);
 }
 
 /* -------------------------
@@ -57,8 +150,12 @@ body {
     display: none;
     position: fixed;
     inset: 0;
+    /* design canvas size (scaled via --scale) */
     width: calc(var(--width) * 1px);
     height: calc(var(--height) * 1px);
+
+     /* Keep the UI at design width/height; scaling is handled via --scale so
+         absolute/relative positions inside `#ui` stay correct. */
 
     transform: translate(-50%, -50%) scale(var(--scale, 1));
     top: 50%;
